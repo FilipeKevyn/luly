@@ -1,20 +1,27 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useCallback, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AddToListSheet } from '@/components/add-to-list-sheet';
-import { HardShadow } from '@/components/hard-shadow';
-import { ScreenMessage } from '@/components/screen-message';
-import { Brand } from '@/constants/theme';
-import { getMovieById, type Movie } from '@/data/movies';
-import { isFilmeEmAlgumaLista, USUARIO_DEMO_ID } from '@/db/repositories';
-import { showNotice } from '@/utils/feedback';
-import { formatDuration, formatRating } from '@/utils/format';
-import { goBackOrHome, openPlayer } from '@/utils/navigation';
+import { AddToListSheet } from "@/components/add-to-list-sheet";
+import { HardShadow } from "@/components/hard-shadow";
+import { ScreenMessage } from "@/components/screen-message";
+import { Brand } from "@/constants/theme";
+import { getMovieById, type Movie } from "@/data/movies";
+import { isFilmeEmAlgumaLista, USUARIO_DEMO_ID } from "@/db/repositories";
+import { showNotice } from "@/utils/feedback";
+import { formatDuration, formatRating } from "@/utils/format";
+import { goBackOrHome, openPlayer } from "@/utils/navigation";
 
 export default function MovieDetailsScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -55,33 +62,51 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
   useFocusEffect(
     useCallback(() => {
       refreshInList();
-    }, [refreshInList])
+    }, [refreshInList]),
   );
 
   async function shareMovie() {
     try {
-      await Share.share({ message: `${movie.title} (${movie.year}) — assista na Luly` });
+      await Share.share({
+        message: `${movie.title} (${movie.year}) — assista na Luly`,
+      });
     } catch {
-      showNotice('Não foi possível compartilhar agora.');
+      showNotice("Não foi possível compartilhar agora.");
     }
   }
 
   return (
     <View style={styles.screen}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={[styles.hero, { marginTop: insets.top + 8 }]}>
-          <Image source={{ uri: movie.hero }} style={styles.heroImage} contentFit="cover" transition={200} />
+          <Image
+            source={{ uri: movie.hero }}
+            style={styles.heroImage}
+            contentFit="cover"
+            transition={200}
+          />
           <View style={styles.heroScrim} />
           <View style={styles.topBar}>
             <Pressable
               onPress={goBackOrHome}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && styles.pressed,
+              ]}
+            >
               <MaterialIcons name="arrow-back" size={22} color={Brand.paper} />
             </Pressable>
             <Pressable
               onPress={shareMovie}
-              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+              style={({ pressed }) => [
+                styles.iconButton,
+                pressed && styles.pressed,
+              ]}
+            >
               <MaterialIcons name="share" size={20} color={Brand.paper} />
             </Pressable>
           </View>
@@ -93,21 +118,37 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
             ) : null}
             <View style={styles.ratingRow}>
               <MaterialIcons name="star" size={18} color={Brand.yellow} />
-              <Text style={styles.ratingText}>{formatRating(movie.rating)}</Text>
+              <Text style={styles.ratingText}>
+                {formatRating(movie.rating)}
+              </Text>
             </View>
             <Text style={styles.title}>{movie.title}</Text>
             <Text style={styles.metaLine}>
-              {movie.year} • {formatDuration(movie.durationMin)} • {movie.maturity} • {movie.genre}
+              {movie.year} • {formatDuration(movie.durationMin)} •{" "}
+              {movie.maturity} • {movie.genre}
             </Text>
           </View>
         </View>
 
         <View style={styles.actionsRow}>
-          <HardShadow offset={5} radius={8} containerStyle={styles.watchWrapper} style={styles.watchButton}>
+          <HardShadow
+            offset={5}
+            radius={8}
+            containerStyle={styles.watchWrapper}
+            style={styles.watchButton}
+          >
             <Pressable
               onPress={() => openPlayer(movie.id)}
-              style={({ pressed }) => [styles.watchPress, pressed && styles.pressed]}>
-              <MaterialIcons name="play-circle-filled" size={22} color={Brand.paper} />
+              style={({ pressed }) => [
+                styles.watchPress,
+                pressed && styles.pressed,
+              ]}
+            >
+              <MaterialIcons
+                name="play-circle-filled"
+                size={22}
+                color={Brand.paper}
+              />
               <Text style={styles.watchLabel}>ASSISTIR AGORA</Text>
             </Pressable>
           </HardShadow>
@@ -118,8 +159,13 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
                 styles.toggleButton,
                 inList && styles.toggleButtonActive,
                 pressed && styles.pressed,
-              ]}>
-              <MaterialIcons name="check" size={24} color={inList ? Brand.paper : Brand.ink} />
+              ]}
+            >
+              <MaterialIcons
+                name={inList ? "check" : "add"}
+                size={24}
+                color={inList ? Brand.paper : Brand.ink}
+              />
             </Pressable>
             <Text style={styles.toggleLabel}>Na lista</Text>
           </View>
@@ -136,14 +182,21 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
             <Text style={styles.directionExtra}>• CC</Text>
           </View>
 
-          <Text style={[styles.sectionTitle, styles.castTitle]}>Elenco principal</Text>
+          <Text style={[styles.sectionTitle, styles.castTitle]}>
+            Elenco principal
+          </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.castRow}>
+            contentContainerStyle={styles.castRow}
+          >
             {movie.cast.map((member) => (
               <View key={member.name} style={styles.castCard}>
-                <Image source={{ uri: member.avatar }} style={styles.castAvatar} contentFit="cover" />
+                <Image
+                  source={{ uri: member.avatar }}
+                  style={styles.castAvatar}
+                  contentFit="cover"
+                />
                 <Text style={styles.castName} numberOfLines={1}>
                   {member.name}
                 </Text>
@@ -175,44 +228,44 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   hero: {
-    marginHorizontal: 16,
-    borderRadius: 14,
-    overflow: 'hidden',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    overflow: "hidden",
     backgroundColor: Brand.black,
-    aspectRatio: 5 / 6,
+    height: 420,
   },
   heroImage: {
     ...StyleSheet.absoluteFill,
   },
   heroScrim: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   topBar: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     left: 12,
     right: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   iconButton: {
     width: 42,
     height: 42,
     borderRadius: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   heroContent: {
-    position: 'absolute',
+    position: "absolute",
     left: 16,
     right: 16,
     bottom: 18,
     gap: 6,
   },
   originalBadge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     backgroundColor: Brand.red,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -222,34 +275,34 @@ const styles = StyleSheet.create({
   },
   originalText: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 1.5,
     color: Brand.paper,
   },
   ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   ratingText: {
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Brand.paper,
   },
   title: {
     fontSize: 38,
     lineHeight: 42,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Brand.paper,
   },
   metaLine: {
     fontSize: 13,
-    fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: "700",
+    color: "rgba(255, 255, 255, 0.85)",
   },
   actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 14,
     paddingHorizontal: 20,
     marginTop: 20,
@@ -262,20 +315,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   watchPress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
     paddingVertical: 17,
   },
   watchLabel: {
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 1.5,
     color: Brand.paper,
   },
   toggleColumn: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   toggleButton: {
@@ -285,15 +338,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Brand.black,
     backgroundColor: Brand.paper,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   toggleButtonActive: {
     backgroundColor: Brand.red,
   },
   toggleLabel: {
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Brand.ink,
   },
   body: {
@@ -303,24 +356,24 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Brand.ink,
   },
   synopsis: {
     fontSize: 15,
     lineHeight: 23,
-    color: '#3A3A3D',
+    color: "#3A3A3D",
   },
   directionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
     gap: 8,
     marginTop: 6,
   },
   directionLabel: {
     fontSize: 13,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Brand.ink,
   },
   directionValue: {
@@ -354,7 +407,7 @@ const styles = StyleSheet.create({
   castName: {
     marginTop: 4,
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: "900",
     color: Brand.ink,
   },
   castRole: {

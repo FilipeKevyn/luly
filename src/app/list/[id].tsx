@@ -219,7 +219,11 @@ function ListaContent({ listaId }: { listaId: number }) {
             <Text style={styles.emptyDescription}>
               Abra um filme e toque em + para salvar nesta lista.
             </Text>
-            <HardShadow offset={5} radius={8} style={styles.emptyButton}>
+            <HardShadow
+              offset={5}
+              radius={8}
+              containerStyle={styles.emptyButtonWrapper}
+              style={styles.emptyButton}>
               <Pressable
                 onPress={() => router.navigate('/(tabs)/inicio')}
                 style={({ pressed }) => [styles.emptyButtonPress, pressed && styles.pressed]}>
@@ -379,10 +383,12 @@ const styles = StyleSheet.create({
     color: Brand.muted,
     textAlign: 'center',
   },
+  emptyButtonWrapper: {
+    marginTop: 8,
+  },
   emptyButton: {
     backgroundColor: Brand.red,
     borderRadius: 8,
-    marginTop: 8,
   },
   emptyButtonPress: {
     paddingHorizontal: 26,

@@ -115,7 +115,7 @@ const rawMovies = [
     videoUrl: video('ForBiggerBlazes'),
     isOriginal: true,
     isNew: false,
-    featured: false,
+    featured: true,
   },
   {
     id: 4,
@@ -219,7 +219,7 @@ const rawMovies = [
     videoUrl: video('ForBiggerMeltdowns'),
     isOriginal: true,
     isNew: true,
-    featured: false,
+    featured: true,
   },
   {
     id: 8,
@@ -285,8 +285,13 @@ export function getMovieById(id: number): Movie | null {
   return catalog.find((movie) => movie.id === id) ?? null;
 }
 
+export function getFeaturedMovies(): Movie[] {
+  const featured = catalog.filter((movie) => movie.featured);
+  return featured.length > 0 ? featured : catalog.slice(0, 1);
+}
+
 export function getFeaturedMovie(): Movie {
-  return catalog.find((movie) => movie.featured) ?? catalog[0];
+  return getFeaturedMovies()[0];
 }
 
 export function getMoviesByGenre(genre: string): Movie[] {

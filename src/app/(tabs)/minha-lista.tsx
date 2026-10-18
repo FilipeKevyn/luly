@@ -196,7 +196,11 @@ export default function MinhaListaScreen() {
               <Text style={styles.emptyDescription}>
                 Crie uma lista para organizar seus títulos do seu jeito.
               </Text>
-              <HardShadow offset={5} radius={8} style={styles.emptyButton}>
+              <HardShadow
+                offset={5}
+                radius={8}
+                containerStyle={styles.emptyButtonWrapper}
+                style={styles.emptyButton}>
                 <Pressable
                   onPress={() => setCreateVisible(true)}
                   style={({ pressed }) => [styles.emptyButtonPress, pressed && styles.pressed]}>
@@ -229,7 +233,11 @@ export default function MinhaListaScreen() {
               <Text style={styles.emptyDescription}>
                 Toque no + de um filme para guardar aqui e assistir quando quiser.
               </Text>
-              <HardShadow offset={5} radius={8} style={styles.emptyButton}>
+              <HardShadow
+                offset={5}
+                radius={8}
+                containerStyle={styles.emptyButtonWrapper}
+                style={styles.emptyButton}>
                 <Pressable
                   onPress={() => router.navigate('/(tabs)/inicio')}
                   style={({ pressed }) => [styles.emptyButtonPress, pressed && styles.pressed]}>
@@ -504,10 +512,12 @@ const styles = StyleSheet.create({
     color: Brand.muted,
     textAlign: 'center',
   },
+  emptyButtonWrapper: {
+    marginTop: 8,
+  },
   emptyButton: {
     backgroundColor: Brand.red,
     borderRadius: 8,
-    marginTop: 8,
   },
   emptyButtonPress: {
     paddingHorizontal: 26,
