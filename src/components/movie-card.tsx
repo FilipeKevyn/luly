@@ -1,0 +1,146 @@
+import { Image } from 'expo-image';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+
+import { HardShadow } from '@/components/hard-shadow';
+import { Brand } from '@/constants/theme';
+import type { Movie } from '@/data/movies';
+import { formatDuration } from '@/utils/format';
+
+type MovieCardProps = {
+  movie: Movie;
+  variant?: 'carousel' | 'grid' | 'list';
+  onPress: () => void;
+};
+
+export function MovieCard({ movie, variant = 'carousel', onPress }: MovieCardProps) {
+  if (variant === 'list') {
+    return (
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}>
+        <Image source={{ uri: movie.poster }} style={styles.listPoster} contentFit="cover" transition={150} />
+        <View style={styles.listInfo}>
+          <Text style={styles.listTitle} numberOfLines={1}>
+            {movie.title}
+          </Text>
+          <Text style={styles.listMeta}>
+            {movie.genre} • {movie.year}
+          </Text>
+        </View>
+        <MaterialIcons name="chevron-right" size={26} color={Brand.ink} />
+      </Pressable>
+    );
+  }
+
+  const isGrid = variant === 'grid';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [isGrid ? styles.gridCard : styles.carouselCard, pressed && styles.pressed]}>
+      <HardShadow radius={6} offset={5} style={styles.posterFrame}>
+        <Image
+          source={{ uri: movie.poster }}
+          style={isGrid ? styles.gridPoster : styles.carouselPoster}
+          contentFit="cover"
+          transition={150}
+        />
+        {isGrid && movie.isNew ? (
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>NOVO</Text>
+          </View>
+        ) : null}
+      </HardShadow>
+      <Text style={isGrid ? styles.gridTitle : styles.carouselTitle} numberOfLines={2}>
+        {movie.title}
+      </Text>
+      <Text style={styles.meta}>
+        {movie.genre} • {isGrid ? movie.year : formatDuration(movie.durationMin)}
+      </Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  carouselCard: {
+    width: 148,
+  },
+  carouselTitle: {
+    marginTop: 10,
+    fontSize: 15,
+    fontWeight: '900',
+    color: Brand.ink,
+  },
+  gridCard: {
+    width: '48%',
+  },
+  gridTitle: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: '900',
+    color: Brand.ink,
+  },
+  posterFrame: {
+    borderRadius: 6,
+    backgroundColor: Brand.black,
+  },
+  carouselPoster: {
+    width: '100%',
+    height: 212,
+    borderRadius: 6,
+  },
+  gridPoster: {
+    width: '100%',
+    aspectRatio: 2 / 3,
+    borderRadius: 6,
+  },
+  newBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: Brand.yellow,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 2,
+    borderWidth: 1.5,
+    borderColor: Brand.black,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    color: Brand.black,
+  },
+  meta: {
+    marginTop: 3,
+    fontSize: 12,
+    color: Brand.muted,
+  },
+  listRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 10,
+  },
+  listPoster: {
+    width: 54,
+    height: 78,
+    borderRadius: 4,
+    backgroundColor: Brand.black,
+  },
+  listInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  listTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: Brand.ink,
+  },
+  listMeta: {
+    fontSize: 12,
+    color: Brand.muted,
+  },
+  pressed: {
+    opacity: 0.8,
+  },
+});

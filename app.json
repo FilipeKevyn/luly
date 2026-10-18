@@ -4,9 +4,10 @@
     "slug": "luly",
     "version": "1.0.0",
     "orientation": "portrait",
+    "backgroundColor": "#E81E3A",
     "icon": "./assets/images/icon.png",
     "scheme": "luly",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon"
     },
@@ -28,11 +29,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#E81E3A",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-video",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
