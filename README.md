@@ -1,56 +1,135 @@
-# Welcome to your Expo app 👋
+<div align="center">
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![Imgur](https://i.imgur.com/t7gxBC8.png)
 
-## Get started
+**Dê o play, companheiro.**
 
-1. Install dependencies
+<p>
+  <img src="https://img.shields.io/badge/Expo-57-000020?style=flat-square&logo=expo" alt="Expo" />
+  <img src="https://img.shields.io/badge/React%20Native-0.86-61DAFB?style=flat-square&logo=react" alt="React Native" />
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-lightgrey?style=flat-square" alt="Plataformas" />
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="Licença MIT" />
+</p>
 
-   ```bash
-   npm install
-   ```
+</div>
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## Sobre
 
-In the output, you'll find options to open the app in a
+**Luly** é um aplicativo de streaming que está em desenvolvimento, com a proposta de facilitar a busca e a organização de filmes. A ideia é permitir que os usuários assistam a filmes, explorem títulos e criem suas próprias listas de favoritos ou de filmes para assistir depois.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Funcionalidades
 
-## Get a fresh project
+- **Adicionar a uma lista** — bottom sheet reutilizável na tela inicial e nos detalhes, com seleção de listas existentes e criação de nova lista.
+- **Listas múltiplas** — cada filme pode estar em mais de uma lista; adicionar novamente é idempotente.
+- **Filmes salvos** — grade com todos os títulos presentes em qualquer lista, além da visão de listas individuais.
+- **Player customizado** — controles próprios sobre `expo-video`, incluindo progresso, seek por toque, velocidade `1x`/`1.5x`/`2x` e tela cheia.
+- **A seguir na Luly** — troca direta para o próximo filme do catálogo sem sair do player.
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
+## Stack
+
+| Camada           | Escolha                                                   |
+| ---------------- | --------------------------------------------------------- |
+| **Runtime**      | Expo SDK 57 · React Native 0.86 · React 19                |
+| **Linguagem**    | TypeScript 6                                              |
+| **Navegação**    | Expo Router com rotas tipadas e `NativeTabs`              |
+| **UI**           | React Native `StyleSheet` · `expo-image` · Material Icons |
+| **Persistência** | `expo-sqlite` (API assíncrona) + migrations versionadas   |
+| **Playback**     | `expo-video`                                              |
+| **Validação**    | Zod                                                       |
+| **Animação**     | React Native Reanimated + Worklets                        |
+| **Web**          | React Native Web + Metro                                  |
+| **Qualidade**    | ESLint + TypeScript                                       |
+
+---
+
+## Arquitetura
+
+```text
+src/
+├── app/                     # Rotas do Expo Router
+│   ├── index.tsx            # Entrada
+│   ├── (tabs)/
+│   │   ├── inicio.tsx       # Início
+│   │   └── minha-lista.tsx  # Listas
+│   ├── movie/[id].tsx       # Detalhes do filme
+│   ├── list/[id].tsx        # Conteúdo de uma lista
+│   └── player/[id].tsx      # Player em tela cheia
+├── components/              # Componentes visuais e sheets/modais
+├── constants/theme.ts       # Paleta Brand, fontes, espaçamentos
+├── data/movies.ts           # Catálogo mock validado com Zod
+├── db/
+│   ├── client.ts            # Abertura do banco + usuário demo
+│   ├── schema.ts            # DDL e versão do schema
+│   └── repositories.ts      # Consultas e mutações por domínio
+├── hooks/                   # Tema e color scheme
+└── utils/                   # Navegação, formatação e feedback
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## Dados e persistência
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### SQLite
 
-## Learn more
+O banco `luly.db` é criado por `src/db/client.ts` com:
 
-To learn more about developing your project with Expo, look at the following resources:
+- `PRAGMA journal_mode = WAL`;
+- `PRAGMA foreign_keys = ON`;
+- controle de versão por `PRAGMA user_version`;
+- usuário demo fixo (`id = 1`), já que ainda não existe login.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Tabelas:
 
-## Join the community
+| Tabela          | Função                                         |
+| --------------- | ---------------------------------------------- |
+| `usuarios`      | Usuário demo do MVP                            |
+| `filmes`        | Metadados mínimos para integridade referencial |
+| `listas`        | Listas criadas pelo usuário                    |
+| `lista_filmes`  | Relação N:N entre listas e filmes              |
+| `visualizacoes` | Filmes iniciados/finalizados e nota do usuário |
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Como rodar
+
+### Requisitos
+
+- **Node.js** compatível com React Native 0.86 (20.19.4+, 22.13+, 24.3+ ou 25+).
+- **npm** (o projeto usa `package-lock.json`).
+- **Expo Go** no celular.
+
+### Instalação
+
+```bash
+npm install
+```
+
+### Desenvolvimento
+
+```bash
+npm start
+```
+
+### Scripts
+
+| Comando           | Descrição                            |
+| ----------------- | ------------------------------------ |
+| `npm start`       | Inicia o servidor de desenvolvimento |
+| `npm run android` | Abre no Android                      |
+| `npm run ios`     | Abre no iOS                          |
+| `npm run web`     | Abre a versão web                    |
+
+---
+
+<div align="center">
+
+**Feito com Expo & React Native**
+
+</div>
