@@ -15,3 +15,7 @@ export function openMovie(id: number) {
 export function openPlayer(id: number) {
   router.push({ pathname: '/player/[id]', params: { id: String(id) } });
 }
+
+export function openList(id: number) {
+  router.push({ pathname: '/list/[id]', params: { id: String(id) } });
+}

@@ -11,9 +11,10 @@ type MovieCardProps = {
   movie: Movie;
   variant?: 'carousel' | 'grid' | 'list';
   onPress: () => void;
+  onRemove?: () => void;
 };
 
-export function MovieCard({ movie, variant = 'carousel', onPress }: MovieCardProps) {
+export function MovieCard({ movie, variant = 'carousel', onPress, onRemove }: MovieCardProps) {
   if (variant === 'list') {
     return (
       <Pressable onPress={onPress} style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}>
@@ -26,7 +27,16 @@ export function MovieCard({ movie, variant = 'carousel', onPress }: MovieCardPro
             {movie.genre} • {movie.year}
           </Text>
         </View>
-        <MaterialIcons name="chevron-right" size={26} color={Brand.ink} />
+        {onRemove ? (
+          <Pressable
+            onPress={onRemove}
+            hitSlop={8}
+            style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}>
+            <MaterialIcons name="close" size={16} color={Brand.paper} />
+          </Pressable>
+        ) : (
+          <MaterialIcons name="chevron-right" size={26} color={Brand.ink} />
+        )}
       </Pressable>
     );
   }
@@ -48,6 +58,14 @@ export function MovieCard({ movie, variant = 'carousel', onPress }: MovieCardPro
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>NOVO</Text>
           </View>
+        ) : null}
+        {isGrid && onRemove ? (
+          <Pressable
+            onPress={onRemove}
+            hitSlop={8}
+            style={({ pressed }) => [styles.removeOverlay, pressed && styles.pressed]}>
+            <MaterialIcons name="close" size={16} color={Brand.paper} />
+          </Pressable>
         ) : null}
       </HardShadow>
       <Text style={isGrid ? styles.gridTitle : styles.carouselTitle} numberOfLines={2}>
@@ -109,6 +127,29 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.black,
+  },
+  removeButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Brand.black,
+    backgroundColor: Brand.red,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Brand.black,
+    backgroundColor: Brand.red,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   meta: {
     marginTop: 3,

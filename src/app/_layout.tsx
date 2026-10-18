@@ -21,6 +21,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="movie/[id]" />
+        <Stack.Screen name="list/[id]" />
         <Stack.Screen name="player/[id]" options={{ animation: 'fade', gestureEnabled: false }} />
       </Stack>
     </ThemeProvider>

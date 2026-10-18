@@ -8,42 +8,58 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CreateListModal } from '@/components/create-list-modal';
 import { HardShadow } from '@/components/hard-shadow';
+import { ListCard, type ListaView } from '@/components/list-card';
 import { MovieCard } from '@/components/movie-card';
 import { Brand } from '@/constants/theme';
 import { getMovieById, type Movie } from '@/data/movies';
 import {
   getContinueAssistindo,
+  listFilmesDaLista,
   listFilmesSalvos,
+  listListasComContagem,
   USUARIO_DEMO_ID,
 } from '@/db/repositories';
 import { showNotice } from '@/utils/feedback';
-import { openMovie, openPlayer } from '@/utils/navigation';
+import { openList, openMovie, openPlayer } from '@/utils/navigation';
 
 type FilterKey = 'todos' | 'filmes' | 'series' | 'baixados';
-type LayoutMode = 'grid' | 'list';
+type ViewMode = 'filmes' | 'listas';
 
 export default function MinhaListaScreen() {
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState<Movie[]>([]);
+  const [listas, setListas] = useState<ListaView[]>([]);
   const [continueWatching, setContinueWatching] = useState<Movie | null>(null);
   const [filter, setFilter] = useState<FilterKey>('todos');
-  const [layout, setLayout] = useState<LayoutMode>('grid');
+  const [mode, setMode] = useState<ViewMode>('filmes');
   const [createVisible, setCreateVisible] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [savedIds, views] = await Promise.all([
+      const [savedIds, views, allListas] = await Promise.all([
         listFilmesSalvos(USUARIO_DEMO_ID),
         getContinueAssistindo(USUARIO_DEMO_ID),
+        listListasComContagem(USUARIO_DEMO_ID),
       ]);
       const movies = savedIds
         .map((id) => getMovieById(id))
         .filter((movie): movie is Movie => movie !== null);
-      setSaved(movies);
       const nextView = views.find((view) => getMovieById(view.filme_id) !== null);
+      const listasComCovers = await Promise.all(
+        allListas.map(async (lista): Promise<ListaView> => {
+          const ids = await listFilmesDaLista(lista.id);
+          const covers = ids
+            .map((filmeId) => getMovieById(filmeId)?.poster)
+            .filter((poster): poster is string => poster !== undefined)
+            .slice(0, 4);
+          return { ...lista, covers };
+        })
+      );
+      setSaved(movies);
       setContinueWatching(nextView ? getMovieById(nextView.filme_id) : null);
+      setListas(listasComCovers);
     } catch {
-      showNotice('Não foi possível carregar sua lista.');
+      showNotice('Não foi possível carregar suas listas.');
     }
   }, []);
 
@@ -69,7 +85,7 @@ export default function MinhaListaScreen() {
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Minha lista</Text>
+          <Text style={styles.title}>Listas</Text>
           <Pressable
             onPress={() => setCreateVisible(true)}
             style={({ pressed }) => [styles.moreButton, pressed && styles.pressed]}>
@@ -77,37 +93,39 @@ export default function MinhaListaScreen() {
           </Pressable>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}>
-          {chips.map((chip) => {
-            const active = filter === chip.key;
-            return (
-              <Pressable
-                key={chip.key}
-                disabled={chip.disabled}
-                onPress={() => setFilter(chip.key)}
-                style={({ pressed }) => [
-                  styles.chip,
-                  active && styles.chipActive,
-                  chip.disabled && styles.chipDisabled,
-                  pressed && styles.pressed,
-                ]}>
-                <Text
-                  style={[
-                    styles.chipLabel,
-                    active && styles.chipLabelActive,
-                    chip.disabled && styles.chipLabelDisabled,
+        {mode === 'filmes' ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipsRow}>
+            {chips.map((chip) => {
+              const active = filter === chip.key;
+              return (
+                <Pressable
+                  key={chip.key}
+                  disabled={chip.disabled}
+                  onPress={() => setFilter(chip.key)}
+                  style={({ pressed }) => [
+                    styles.chip,
+                    active && styles.chipActive,
+                    chip.disabled && styles.chipDisabled,
+                    pressed && styles.pressed,
                   ]}>
-                  {chip.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+                  <Text
+                    style={[
+                      styles.chipLabel,
+                      active && styles.chipLabelActive,
+                      chip.disabled && styles.chipLabelDisabled,
+                    ]}>
+                    {chip.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        ) : null}
 
-        {showMovies && continueWatching ? (
+        {continueWatching ? (
           <HardShadow offset={5} radius={10} containerStyle={styles.continueWrapper} style={styles.continueCard}>
             <Pressable
               onPress={() => openPlayer(continueWatching.id)}
@@ -133,78 +151,104 @@ export default function MinhaListaScreen() {
           </HardShadow>
         ) : null}
 
-        {showMovies ? (
-          <>
-            <View style={styles.sectionHeader}>
-              <View style={styles.sectionTitles}>
-                <Text style={styles.sectionTitle}>Salvos para depois</Text>
-                <Text style={styles.sectionSubtitle}>
-                  {saved.length === 1 ? '1 título na sua coleção' : `${saved.length} títulos na sua coleção`}
-                </Text>
-              </View>
-              <View style={styles.layoutToggle}>
-                <Pressable
-                  onPress={() => setLayout('grid')}
-                  style={[styles.layoutButton, layout === 'grid' && styles.layoutButtonActive]}>
-                  <MaterialIcons
-                    name="grid-view"
-                    size={20}
-                    color={layout === 'grid' ? Brand.paper : Brand.ink}
-                  />
-                </Pressable>
-                <Pressable
-                  onPress={() => setLayout('list')}
-                  style={[styles.layoutButton, layout === 'list' && styles.layoutButtonActive]}>
-                  <MaterialIcons
-                    name="view-list"
-                    size={20}
-                    color={layout === 'list' ? Brand.paper : Brand.ink}
-                  />
-                </Pressable>
-              </View>
-            </View>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitles}>
+            <Text style={styles.sectionTitle}>{mode === 'filmes' ? 'Filmes salvos' : 'Minhas listas'}</Text>
+            <Text style={styles.sectionSubtitle}>
+              {mode === 'filmes'
+                ? saved.length === 1
+                  ? '1 título na sua coleção'
+                  : `${saved.length} títulos na sua coleção`
+                : listas.length === 1
+                  ? '1 lista criada'
+                  : `${listas.length} listas criadas`}
+            </Text>
+          </View>
+          <View style={styles.layoutToggle}>
+            <Pressable
+              onPress={() => setMode('filmes')}
+              style={[styles.layoutButton, mode === 'filmes' && styles.layoutButtonActive]}>
+              <MaterialIcons
+                name="grid-view"
+                size={20}
+                color={mode === 'filmes' ? Brand.paper : Brand.ink}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() => setMode('listas')}
+              style={[styles.layoutButton, mode === 'listas' && styles.layoutButtonActive]}>
+              <MaterialIcons
+                name="view-list"
+                size={20}
+                color={mode === 'listas' ? Brand.paper : Brand.ink}
+              />
+            </Pressable>
+          </View>
+        </View>
 
-            {saved.length === 0 ? (
-              <View style={styles.emptyBlock}>
-                <View style={styles.emptyIcon}>
-                  <MaterialIcons name="bookmark-border" size={32} color={Brand.paper} />
+        {mode === 'listas' ? (
+          listas.length === 0 ? (
+            <View style={styles.emptyBlock}>
+              <View style={styles.emptyIcon}>
+                <MaterialIcons name="bookmark-border" size={32} color={Brand.paper} />
+              </View>
+              <Text style={styles.emptyTitle}>Você ainda não criou listas</Text>
+              <Text style={styles.emptyDescription}>
+                Crie uma lista para organizar seus títulos do seu jeito.
+              </Text>
+              <HardShadow offset={5} radius={8} style={styles.emptyButton}>
+                <Pressable
+                  onPress={() => setCreateVisible(true)}
+                  style={({ pressed }) => [styles.emptyButtonPress, pressed && styles.pressed]}>
+                  <Text style={styles.emptyButtonLabel}>CRIAR LISTA</Text>
+                </Pressable>
+              </HardShadow>
+            </View>
+          ) : (
+            <View style={styles.listasList}>
+              {listas.map((lista) => (
+                <ListCard key={lista.id} lista={lista} onPress={() => openList(lista.id)} />
+              ))}
+              <Pressable
+                onPress={() => setCreateVisible(true)}
+                style={({ pressed }) => [styles.newListRow, pressed && styles.pressed]}>
+                <View style={styles.plusBox}>
+                  <MaterialIcons name="add" size={18} color={Brand.ink} />
                 </View>
-                <Text style={styles.emptyTitle}>Você ainda não salvou nada</Text>
-                <Text style={styles.emptyDescription}>
-                  Toque no + de um filme para guardar aqui e assistir quando quiser.
-                </Text>
-                <HardShadow offset={5} radius={8} style={styles.emptyButton}>
-                  <Pressable
-                    onPress={() => router.navigate('/(tabs)/inicio')}
-                    style={({ pressed }) => [styles.emptyButtonPress, pressed && styles.pressed]}>
-                    <Text style={styles.emptyButtonLabel}>DESCOBRIR FILMES</Text>
-                  </Pressable>
-                </HardShadow>
+                <Text style={styles.newListLabel}>Criar nova lista</Text>
+              </Pressable>
+            </View>
+          )
+        ) : showMovies ? (
+          saved.length === 0 ? (
+            <View style={styles.emptyBlock}>
+              <View style={styles.emptyIcon}>
+                <MaterialIcons name="bookmark-border" size={32} color={Brand.paper} />
               </View>
-            ) : layout === 'grid' ? (
-              <View style={styles.grid}>
-                {saved.map((movie) => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                    variant="grid"
-                    onPress={() => openMovie(movie.id)}
-                  />
-                ))}
-              </View>
-            ) : (
-              <View style={styles.list}>
-                {saved.map((movie) => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                    variant="list"
-                    onPress={() => openMovie(movie.id)}
-                  />
-                ))}
-              </View>
-            )}
-          </>
+              <Text style={styles.emptyTitle}>Você ainda não salvou nada</Text>
+              <Text style={styles.emptyDescription}>
+                Toque no + de um filme para guardar aqui e assistir quando quiser.
+              </Text>
+              <HardShadow offset={5} radius={8} style={styles.emptyButton}>
+                <Pressable
+                  onPress={() => router.navigate('/(tabs)/inicio')}
+                  style={({ pressed }) => [styles.emptyButtonPress, pressed && styles.pressed]}>
+                  <Text style={styles.emptyButtonLabel}>DESCOBRIR FILMES</Text>
+                </Pressable>
+              </HardShadow>
+            </View>
+          ) : (
+            <View style={styles.grid}>
+              {saved.map((movie) => (
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  variant="grid"
+                  onPress={() => openMovie(movie.id)}
+                />
+              ))}
+            </View>
+          )
         ) : (
           <View style={styles.emptyBlock}>
             <View style={styles.emptyIcon}>
@@ -229,7 +273,10 @@ export default function MinhaListaScreen() {
       <CreateListModal
         visible={createVisible}
         onClose={() => setCreateVisible(false)}
-        onCreated={(lista) => showNotice(`Lista "${lista.nome}" criada.`)}
+        onCreated={(lista) => {
+          showNotice(`Lista "${lista.nome}" criada.`);
+          load();
+        }}
       />
     </View>
   );
@@ -392,15 +439,41 @@ const styles = StyleSheet.create({
   layoutButtonActive: {
     backgroundColor: Brand.ink,
   },
+  listasList: {
+    paddingHorizontal: 20,
+    gap: 18,
+  },
+  newListRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Brand.black,
+    backgroundColor: Brand.paper,
+  },
+  plusBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Brand.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newListLabel: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Brand.ink,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     rowGap: 24,
-  },
-  list: {
-    paddingHorizontal: 20,
   },
   emptyBlock: {
     alignItems: 'center',

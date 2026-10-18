@@ -25,7 +25,7 @@ export default function AppTabs() {
             <TabButton icon="home">Início</TabButton>
           </TabTrigger>
           <TabTrigger name="minha-lista" href="/minha-lista" asChild>
-            <TabButton icon="bookmark">Minha Lista</TabButton>
+            <TabButton icon="bookmark">Listas</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>

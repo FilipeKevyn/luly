@@ -19,7 +19,7 @@ export default function AppTabs() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="minha-lista">
         <NativeTabs.Trigger.Icon sf={{ default: 'bookmark', selected: 'bookmark.fill' }} md="bookmark" />
-        <NativeTabs.Trigger.Label>Minha Lista</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>Listas</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

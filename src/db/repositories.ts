@@ -52,6 +52,14 @@ export async function listListasComContagem(usuarioId: number): Promise<ListaCom
   );
 }
 
+export async function getListaPorId(listaId: number): Promise<Lista | null> {
+  const db = await getDatabase();
+  return db.getFirstAsync<Lista>(
+    'SELECT id, usuario_id, nome, created_at FROM listas WHERE id = ?',
+    listaId
+  );
+}
+
 export async function createLista(usuarioId: number, nome: string): Promise<Lista> {
   const trimmed = nome.trim();
   if (!trimmed) {
