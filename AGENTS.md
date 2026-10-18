@@ -34,6 +34,23 @@ Run lint and typecheck before declaring any task done.
 Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
 Docs: https://docs.expo.dev/eas/index.md
 
+## Skills Ativas (obrigatórias a cada prompt)
+
+Este projeto usa skills instaladas globalmente em `~/.agents/skills/`. Antes de qualquer tarefa envolvendo código, carregue e aplique:
+
+1. `typescript-best-practices` (`alleneubank/claude-code@typescript-best-practices`) — OBRIGATÓRIA para todo arquivo `.ts`, `.tsx`, `.js`, `tsconfig.json`.
+   - Type-first: torne estados ilegais irrepresentáveis (unions discriminadas, branded types/`Opaque`, `as const`, check exaustivo com `never`).
+   - Validação runtime com Zod como single source of truth (`z.infer<>`, `safeParse` para input de usuário, `parse` em trust boundaries).
+   - Docs: https://skills.sh/alleneubank/claude-code/typescript-best-practices
+2. `expo-react-native-typescript` (`mindrally/skills@expo-react-native-typescript`) — OBRIGATÓRIA para todo código Expo/React Native.
+   - Functional/declarative, sem classes; componente exportado + subcomponents + helpers + types.
+   - `interface` > `type`, sem `enum` (use maps), `strict mode` ligado, componentes funcionais com `interface` e named exports.
+   - `SafeAreaProvider`/`SafeAreaView`, Flexbox + `useWindowDimensions`, dark mode `useColorScheme`, `expo-image` (WebP + lazy), `expo-constants` para env.
+   - Erros no início com early return, Zod para validação, Jest + Testing Library para testes.
+   - Docs: https://skills.sh/mindrally/skills/expo-react-native-typescript
+
+Regra: se a tarefa tocar `.tsx` com React, aplique as duas em conjunto. Nunca use `any` explícito sem justificativa; prefira `unknown` + narrowing/Zod.
+
 ## Rules
 
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
