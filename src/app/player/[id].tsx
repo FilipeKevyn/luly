@@ -1,10 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEvent, useEventListener } from 'expo';
 import { Image } from 'expo-image';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { VideoView, useVideoPlayer, type VideoPlayer } from 'expo-video';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -77,14 +77,6 @@ function PlayerContent({ movie }: { movie: Movie }) {
   useEffect(() => {
     marcarIniciado(USUARIO_DEMO_ID, movie.id).catch(() => {});
   }, [movie.id]);
-
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        player.pause();
-      };
-    }, [player])
-  );
 
   const displayDuration = duration > 0 ? duration : movie.durationMin * 60;
   const progress = displayDuration > 0 ? Math.min(1, currentTime / displayDuration) : 0;
