@@ -8,7 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HardShadow } from '@/components/hard-shadow';
 import { MovieCard } from '@/components/movie-card';
 import { ScreenMessage } from '@/components/screen-message';
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 import { getMovieById, type Movie } from '@/data/movies';
 import {
   deleteLista,
@@ -300,18 +301,18 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   kicker: {
-    fontSize: 10,
+    ...TypeScale.micro,
     fontWeight: '900',
     letterSpacing: 1.5,
     color: Brand.red,
   },
   title: {
-    fontSize: 34,
+    ...TypeScale.screenTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
   subtitle: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: Brand.muted,
   },
   sectionHeader: {
@@ -323,7 +324,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 22,
+    ...TypeScale.sectionTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
@@ -372,14 +373,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: 20,
+    ...TypeScale.emptyTitle,
     fontWeight: '900',
     color: Brand.ink,
     textAlign: 'center',
   },
   emptyDescription: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...TypeScale.body,
     color: Brand.muted,
     textAlign: 'center',
   },
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   emptyButtonLabel: {
-    fontSize: 13,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1.5,
     color: Brand.paper,

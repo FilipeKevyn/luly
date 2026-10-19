@@ -1,14 +1,16 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { HardShadow } from '@/components/hard-shadow';
-import { Brand } from '@/constants/theme';
-import { getFeaturedMovie } from '@/data/movies';
-import { showNotice } from '@/utils/feedback';
+import { HardShadow } from "@/components/hard-shadow";
+import { Text } from "@/components/text";
+import { Brand } from "@/constants/theme";
+import { TypeScale } from "@/constants/typography";
+import { getFeaturedMovie } from "@/data/movies";
+import { showNotice } from "@/utils/feedback";
 
 export default function EntradaScreen() {
   const featured = getFeaturedMovie();
@@ -16,8 +18,11 @@ export default function EntradaScreen() {
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.brandRow}>
             <MaterialIcons name="star" size={28} color={Brand.paper} />
             <Text style={styles.brand}>luly</Text>
@@ -25,9 +30,16 @@ export default function EntradaScreen() {
 
           <Text style={styles.kicker}>SEU CINEMA, SUA ÓRBITA</Text>
           <Text style={styles.title}>Histórias que brilham com você.</Text>
-          <Text style={styles.subtitle}>Filmes incríveis, descobertas certeiras e uma lista só sua.</Text>
+          <Text style={styles.subtitle}>
+            Filmes incríveis, descobertas certeiras e uma lista só sua.
+          </Text>
 
-          <HardShadow offset={6} radius={14} containerStyle={styles.promoWrapper} style={styles.promoFrame}>
+          <HardShadow
+            offset={6}
+            radius={14}
+            containerStyle={styles.promoWrapper}
+            style={styles.promoFrame}
+          >
             <Image
               source={{ uri: featured.hero }}
               style={styles.promoImage}
@@ -40,28 +52,49 @@ export default function EntradaScreen() {
           </HardShadow>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Pronta para dar play?</Text>
-            <Text style={styles.cardSubtitle}>Entre e encontre o filme perfeito para agora.</Text>
+            <Text style={styles.cardTitle}>Pronto para dar play?</Text>
+            <Text style={styles.cardSubtitle}>
+              Entre e encontre o filme perfeito para agora.
+            </Text>
 
-            <HardShadow offset={5} radius={8} containerStyle={styles.buttonWrapper} style={styles.primaryButton}>
+            <HardShadow
+              offset={5}
+              radius={8}
+              containerStyle={styles.buttonWrapper}
+              style={styles.primaryButton}
+            >
               <Pressable
-                onPress={() => router.replace('/(tabs)/inicio')}
-                style={({ pressed }) => [styles.primaryPress, pressed && styles.pressed]}>
+                onPress={() => router.replace("/(tabs)/inicio")}
+                style={({ pressed }) => [
+                  styles.primaryPress,
+                  pressed && styles.pressed,
+                ]}
+              >
                 <MaterialIcons name="star" size={18} color={Brand.paper} />
                 <Text style={styles.primaryLabel}>ENTRAR NA LULY</Text>
               </Pressable>
             </HardShadow>
 
-            <HardShadow offset={5} radius={8} containerStyle={styles.buttonWrapper} style={styles.secondaryButton}>
+            <HardShadow
+              offset={5}
+              radius={8}
+              containerStyle={styles.buttonWrapper}
+              style={styles.secondaryButton}
+            >
               <Pressable
-                onPress={() => showNotice('Disponível em breve.')}
-                style={({ pressed }) => [styles.secondaryPress, pressed && styles.pressed]}>
+                onPress={() => showNotice("Disponível em breve.")}
+                style={({ pressed }) => [
+                  styles.secondaryPress,
+                  pressed && styles.pressed,
+                ]}
+              >
                 <Text style={styles.secondaryLabel}>Criar minha conta</Text>
               </Pressable>
             </HardShadow>
 
             <Text style={styles.terms}>
-              Ao continuar, você aceita os Termos de Uso e a Política de Privacidade.
+              Ao continuar, você aceita os Termos de Uso e a Política de
+              Privacidade.
             </Text>
           </View>
         </ScrollView>
@@ -84,35 +117,34 @@ const styles = StyleSheet.create({
     paddingTop: 18,
   },
   brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   brand: {
     fontSize: 30,
-    fontWeight: '900',
+    lineHeight: 36,
+    fontWeight: "900",
     color: Brand.paper,
     letterSpacing: 0.5,
   },
   kicker: {
     marginTop: 30,
-    fontSize: 12,
-    fontWeight: '900',
+    ...TypeScale.caption,
+    fontWeight: "900",
     letterSpacing: 2,
     color: Brand.yellow,
   },
   title: {
     marginTop: 10,
-    fontSize: 40,
-    lineHeight: 44,
-    fontWeight: '900',
+    ...TypeScale.display,
+    fontWeight: "900",
     color: Brand.paper,
   },
   subtitle: {
     marginTop: 12,
-    fontSize: 15,
-    lineHeight: 22,
-    color: 'rgba(255, 255, 255, 0.9)',
+    ...TypeScale.bodyLarge,
+    color: "rgba(255, 255, 255, 0.9)",
   },
   promoWrapper: {
     marginTop: 26,
@@ -123,12 +155,12 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.black,
   },
   promoImage: {
-    width: '100%',
+    width: "100%",
     aspectRatio: 4 / 3,
     borderRadius: 14,
   },
   promoBadge: {
-    position: 'absolute',
+    position: "absolute",
     right: 14,
     bottom: 14,
     backgroundColor: Brand.yellow,
@@ -139,8 +171,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.black,
   },
   promoBadgeText: {
-    fontSize: 10,
-    fontWeight: '900',
+    ...TypeScale.micro,
+    fontWeight: "900",
     letterSpacing: 1,
     color: Brand.black,
   },
@@ -156,12 +188,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardTitle: {
-    fontSize: 30,
-    fontWeight: '900',
+    ...TypeScale.cardHeadline,
+    fontWeight: "900",
     color: Brand.ink,
   },
   cardSubtitle: {
-    fontSize: 15,
+    ...TypeScale.bodyLarge,
     color: Brand.muted,
     marginBottom: 8,
   },
@@ -173,16 +205,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   primaryPress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 10,
     paddingVertical: 18,
   },
   primaryLabel: {
+    ...TypeScale.buttonLarge,
     color: Brand.paper,
-    fontSize: 15,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 1.5,
   },
   secondaryButton: {
@@ -192,21 +224,20 @@ const styles = StyleSheet.create({
     borderColor: Brand.black,
   },
   secondaryPress: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 16,
   },
   secondaryLabel: {
+    ...TypeScale.buttonLarge,
     color: Brand.ink,
-    fontSize: 15,
-    fontWeight: '900',
+    fontWeight: "900",
     letterSpacing: 0.5,
   },
   terms: {
     marginTop: 10,
-    fontSize: 11,
-    lineHeight: 16,
+    ...TypeScale.label,
     color: Brand.muted,
-    textAlign: 'center',
+    textAlign: "center",
   },
   pressed: {
     opacity: 0.85,

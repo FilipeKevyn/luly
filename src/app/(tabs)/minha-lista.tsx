@@ -3,14 +3,16 @@ import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateListModal } from "@/components/create-list-modal";
 import { HardShadow } from "@/components/hard-shadow";
 import { ListCard, type ListaView } from "@/components/list-card";
 import { MovieCard } from "@/components/movie-card";
+import { Text } from "@/components/text";
 import { Brand } from "@/constants/theme";
+import { TypeScale } from "@/constants/typography";
 import { getMovieById, type Movie } from "@/data/movies";
 import {
   getContinueAssistindo,
@@ -368,7 +370,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 34,
+    ...TypeScale.screenTitle,
     fontWeight: "900",
     color: Brand.ink,
   },
@@ -403,7 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.canvas,
   },
   chipLabel: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     fontWeight: "900",
     color: Brand.ink,
   },
@@ -440,13 +442,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   continueKicker: {
-    fontSize: 10,
+    ...TypeScale.micro,
     fontWeight: "900",
     letterSpacing: 1.5,
     color: Brand.red,
   },
   continueTitle: {
-    fontSize: 18,
+    ...TypeScale.listTitle,
     fontWeight: "900",
     color: Brand.ink,
   },
@@ -484,12 +486,12 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   sectionTitle: {
-    fontSize: 22,
+    ...TypeScale.sectionTitle,
     fontWeight: "900",
     color: Brand.ink,
   },
   sectionSubtitle: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: Brand.muted,
   },
   layoutToggle: {
@@ -534,7 +536,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   newListLabel: {
-    fontSize: 14,
+    ...TypeScale.body,
     fontWeight: "800",
     color: Brand.ink,
   },
@@ -563,14 +565,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyTitle: {
-    fontSize: 20,
+    ...TypeScale.emptyTitle,
     fontWeight: "900",
     color: Brand.ink,
     textAlign: "center",
   },
   emptyDescription: {
-    fontSize: 14,
-    lineHeight: 20,
+    ...TypeScale.body,
     color: Brand.muted,
     textAlign: "center",
   },
@@ -586,7 +587,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   emptyButtonLabel: {
-    fontSize: 13,
+    ...TypeScale.button,
     fontWeight: "900",
     letterSpacing: 1.5,
     color: Brand.paper,

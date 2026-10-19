@@ -7,9 +7,11 @@ import {
   type TabListProps,
   type TabTriggerSlotProps,
 } from 'expo-router/ui';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 
 type TabButtonProps = TabTriggerSlotProps & {
   icon: keyof typeof MaterialIcons.glyphMap;
@@ -79,7 +81,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   tabLabel: {
-    fontSize: 11,
+    ...TypeScale.label,
     fontWeight: '800',
     color: Brand.muted,
   },

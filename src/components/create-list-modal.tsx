@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { FontFamily, TypeScale } from '@/constants/typography';
 import { createLista, USUARIO_DEMO_ID, type Lista } from '@/db/repositories';
 import { showNotice } from '@/utils/feedback';
 
@@ -93,12 +95,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 24,
+    ...TypeScale.modalTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
   subtitle: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: Brand.muted,
   },
   input: {
@@ -108,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: FontFamily.bold,
     color: Brand.ink,
   },
   actions: {
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.black,
   },
   ghostLabel: {
-    fontSize: 13,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.ink,
@@ -139,7 +141,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.red,
   },
   primaryLabel: {
-    fontSize: 13,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.paper,

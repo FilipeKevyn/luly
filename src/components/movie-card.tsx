@@ -1,9 +1,11 @@
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { HardShadow } from '@/components/hard-shadow';
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 import type { Movie } from '@/data/movies';
 import { formatDuration } from '@/utils/format';
 
@@ -84,7 +86,7 @@ const styles = StyleSheet.create({
   },
   carouselTitle: {
     marginTop: 10,
-    fontSize: 15,
+    ...TypeScale.cardTitleSmall,
     fontWeight: '900',
     color: Brand.ink,
   },
@@ -93,7 +95,7 @@ const styles = StyleSheet.create({
   },
   gridTitle: {
     marginTop: 10,
-    fontSize: 16,
+    ...TypeScale.cardTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.black,
   },
   newBadgeText: {
-    fontSize: 10,
+    ...TypeScale.micro,
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.black,
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     marginTop: 3,
-    fontSize: 12,
+    ...TypeScale.caption,
     color: Brand.muted,
   },
   listRow: {
@@ -173,12 +175,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   listTitle: {
-    fontSize: 16,
+    ...TypeScale.cardTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
   listMeta: {
-    fontSize: 12,
+    ...TypeScale.caption,
     color: Brand.muted,
   },
   pressed: {

@@ -40,6 +40,7 @@
 | **Linguagem**    | TypeScript 6                                              |
 | **Navegação**    | Expo Router com rotas tipadas e `NativeTabs`              |
 | **UI**           | React Native `StyleSheet` · `expo-image` · Material Icons |
+| **Tipografia**   | Nunito (`400`–`900`) via `@expo-google-fonts/nunito`      |
 | **Persistência** | `expo-sqlite` (API assíncrona) + migrations versionadas   |
 | **Playback**     | `expo-video`                                              |
 | **Validação**    | Zod                                                       |
@@ -62,7 +63,8 @@ src/
 │   ├── list/[id].tsx        # Conteúdo de uma lista
 │   └── player/[id].tsx      # Player em tela cheia
 ├── components/              # Componentes visuais e sheets/modais
-├── constants/theme.ts       # Paleta Brand, fontes, espaçamentos
+├── constants/theme.ts       # Paleta Brand e espaçamentos
+├── constants/typography.ts  # Famílias e escala tipográfica Nunito
 ├── data/movies.ts           # Catálogo mock validado com Zod
 ├── db/
 │   ├── client.ts            # Abertura do banco + usuário demo

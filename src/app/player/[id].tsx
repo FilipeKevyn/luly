@@ -5,12 +5,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { VideoView, useVideoPlayer, type VideoPlayer } from 'expo-video';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HardShadow } from '@/components/hard-shadow';
 import { ScreenMessage } from '@/components/screen-message';
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 import { getMovieById, getNextMovie, type Movie } from '@/data/movies';
 import { marcarFinalizado, marcarIniciado, USUARIO_DEMO_ID } from '@/db/repositories';
 import { showNotice } from '@/utils/feedback';
@@ -292,7 +294,7 @@ const styles = StyleSheet.create({
   castLabel: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.75)',
   },
@@ -314,12 +316,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   errorTitle: {
-    fontSize: 18,
+    ...TypeScale.listTitle,
     fontWeight: '900',
     color: Brand.paper,
   },
   errorDescription: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
   },
@@ -337,7 +339,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.paper,
   },
   retryLabel: {
-    fontSize: 12,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.paper,
@@ -350,7 +352,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   backLabel: {
-    fontSize: 12,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.paper,
@@ -394,12 +396,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   timeText: {
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '800',
     color: Brand.paper,
   },
   timeRest: {
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '800',
     color: 'rgba(255, 255, 255, 0.7)',
   },
@@ -451,18 +453,18 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.nightSoft,
   },
   controlChipLabel: {
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '800',
     color: Brand.paper,
   },
   movieTitle: {
     marginTop: 10,
-    fontSize: 26,
+    ...TypeScale.playerTitle,
     fontWeight: '900',
     color: Brand.paper,
   },
   movieSub: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: 'rgba(255, 255, 255, 0.65)',
   },
   nextSection: {
@@ -475,13 +477,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   nextLabel: {
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '900',
     letterSpacing: 1.5,
     color: Brand.paper,
   },
   nextHint: {
-    fontSize: 12,
+    ...TypeScale.caption,
     color: 'rgba(255, 255, 255, 0.6)',
   },
   nextCard: {
@@ -505,12 +507,12 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   nextTitle: {
-    fontSize: 15,
+    ...TypeScale.cardTitleSmall,
     fontWeight: '900',
     color: Brand.paper,
   },
   nextMeta: {
-    fontSize: 12,
+    ...TypeScale.caption,
     color: 'rgba(255, 255, 255, 0.6)',
   },
   nextPlay: {

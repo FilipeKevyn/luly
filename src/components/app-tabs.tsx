@@ -1,6 +1,7 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 import { Brand } from '@/constants/theme';
+import { FontFamily } from '@/constants/typography';
 
 export default function AppTabs() {
   return (
@@ -9,8 +10,8 @@ export default function AppTabs() {
       tintColor={Brand.red}
       iconColor={{ default: Brand.muted, selected: Brand.red }}
       labelStyle={{
-        default: { color: Brand.muted, fontSize: 11 },
-        selected: { color: Brand.red, fontSize: 11 },
+        default: { color: Brand.muted, fontSize: 11, fontFamily: FontFamily.bold },
+        selected: { color: Brand.red, fontSize: 11, fontFamily: FontFamily.bold },
       }}
       disableTransparentOnScrollEdge>
       <NativeTabs.Trigger name="inicio">

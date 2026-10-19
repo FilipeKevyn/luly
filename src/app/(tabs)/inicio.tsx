@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -17,7 +16,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AddToListSheet } from '@/components/add-to-list-sheet';
 import { HardShadow } from '@/components/hard-shadow';
 import { MovieCard } from '@/components/movie-card';
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 import { getFeaturedMovies, getHomeSections, type Movie } from '@/data/movies';
 import { showNotice } from '@/utils/feedback';
 import { formatRating } from '@/utils/format';
@@ -270,6 +271,7 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontSize: 26,
+    lineHeight: 32,
     fontWeight: '900',
     color: Brand.ink,
     letterSpacing: 0.5,
@@ -328,7 +330,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.black,
   },
   heroBadgeText: {
-    fontSize: 10,
+    ...TypeScale.micro,
     fontWeight: '900',
     letterSpacing: 1.5,
     color: Brand.paper,
@@ -346,19 +348,18 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   heroRating: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     fontWeight: '900',
     color: Brand.paper,
   },
   heroGenre: {
     marginLeft: 4,
-    fontSize: 13,
+    ...TypeScale.subtitle,
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.85)',
   },
   heroTitle: {
-    fontSize: 34,
-    lineHeight: 38,
+    ...TypeScale.heroTitle,
     fontWeight: '900',
     color: Brand.paper,
   },
@@ -380,7 +381,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   watchLabel: {
-    fontSize: 13,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1.5,
     color: Brand.paper,
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 22,
+    ...TypeScale.sectionTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   sectionActionLabel: {
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '900',
     letterSpacing: 1,
     color: Brand.red,

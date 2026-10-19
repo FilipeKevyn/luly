@@ -8,7 +8,6 @@ import {
   ScrollView,
   Share,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,7 +15,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AddToListSheet } from "@/components/add-to-list-sheet";
 import { HardShadow } from "@/components/hard-shadow";
 import { ScreenMessage } from "@/components/screen-message";
+import { Text } from "@/components/text";
 import { Brand } from "@/constants/theme";
+import { TypeScale } from "@/constants/typography";
 import { getMovieById, type Movie } from "@/data/movies";
 import { isFilmeEmAlgumaLista, USUARIO_DEMO_ID } from "@/db/repositories";
 import { showNotice } from "@/utils/feedback";
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.black,
   },
   originalText: {
-    fontSize: 10,
+    ...TypeScale.micro,
     fontWeight: "900",
     letterSpacing: 1.5,
     color: Brand.paper,
@@ -285,18 +286,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   ratingText: {
-    fontSize: 16,
+    ...TypeScale.cardTitle,
     fontWeight: "900",
     color: Brand.paper,
   },
   title: {
-    fontSize: 38,
-    lineHeight: 42,
+    ...TypeScale.heroTitle,
     fontWeight: "900",
     color: Brand.paper,
   },
   metaLine: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     fontWeight: "700",
     color: "rgba(255, 255, 255, 0.85)",
   },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: 17,
   },
   watchLabel: {
-    fontSize: 14,
+    ...TypeScale.buttonLarge,
     fontWeight: "900",
     letterSpacing: 1.5,
     color: Brand.paper,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.red,
   },
   toggleLabel: {
-    fontSize: 11,
+    ...TypeScale.label,
     fontWeight: "800",
     color: Brand.ink,
   },
@@ -355,13 +355,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
-    fontSize: 20,
+    ...TypeScale.sectionTitle,
     fontWeight: "900",
     color: Brand.ink,
   },
   synopsis: {
-    fontSize: 15,
-    lineHeight: 23,
+    ...TypeScale.bodyLarge,
     color: "#3A3A3D",
   },
   directionRow: {
@@ -372,16 +371,16 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   directionLabel: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     fontWeight: "900",
     color: Brand.ink,
   },
   directionValue: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: Brand.muted,
   },
   directionExtra: {
-    fontSize: 13,
+    ...TypeScale.subtitle,
     color: Brand.muted,
   },
   castTitle: {
@@ -406,12 +405,12 @@ const styles = StyleSheet.create({
   },
   castName: {
     marginTop: 4,
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: "900",
     color: Brand.ink,
   },
   castRole: {
-    fontSize: 11,
+    ...TypeScale.label,
     color: Brand.muted,
   },
   pressed: {

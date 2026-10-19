@@ -1,9 +1,11 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { HardShadow } from '@/components/hard-shadow';
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 import type { ListaComContagem } from '@/db/repositories';
 
 export interface ListaView extends ListaComContagem {
@@ -98,12 +100,12 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   name: {
-    fontSize: 16,
+    ...TypeScale.cardTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
   count: {
-    fontSize: 12,
+    ...TypeScale.caption,
     color: Brand.muted,
   },
   pressed: {

@@ -1,7 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
 
 type ScreenMessageProps = {
   icon?: keyof typeof MaterialIcons.glyphMap;
@@ -49,16 +51,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
-    fontSize: 22,
+    ...TypeScale.emptyTitle,
     fontWeight: '900',
     color: Brand.ink,
     textAlign: 'center',
   },
   description: {
-    fontSize: 14,
+    ...TypeScale.body,
     color: Brand.muted,
     textAlign: 'center',
-    lineHeight: 20,
   },
   button: {
     marginTop: 8,
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     color: Brand.paper,
-    fontSize: 13,
+    ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
   },

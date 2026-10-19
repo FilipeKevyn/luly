@@ -7,13 +7,14 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';
 
 import { HardShadow } from '@/components/hard-shadow';
+import { Text } from '@/components/text';
 import { Brand } from '@/constants/theme';
+import { FontFamily, TypeScale } from '@/constants/typography';
 import type { Movie } from '@/data/movies';
 import {
   addFilmeALista,
@@ -257,13 +258,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   kicker: {
-    fontSize: 10,
+    ...TypeScale.micro,
     fontWeight: '900',
     letterSpacing: 1.5,
     color: Brand.red,
   },
   title: {
-    fontSize: 22,
+    ...TypeScale.modalTitle,
     fontWeight: '900',
     color: Brand.ink,
   },
@@ -311,18 +312,17 @@ const styles = StyleSheet.create({
   },
   listName: {
     flex: 1,
-    fontSize: 15,
+    ...TypeScale.bodyLarge,
     fontWeight: '800',
     color: Brand.ink,
   },
   listCount: {
-    fontSize: 12,
+    ...TypeScale.caption,
     fontWeight: '800',
     color: Brand.muted,
   },
   emptyText: {
-    fontSize: 13,
-    lineHeight: 18,
+    ...TypeScale.subtitle,
     color: Brand.muted,
     paddingVertical: 6,
   },
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: FontFamily.bold,
     color: Brand.ink,
   },
   createConfirm: {
@@ -352,8 +352,8 @@ const styles = StyleSheet.create({
   },
   createConfirmLabel: {
     color: Brand.paper,
+    ...TypeScale.button,
     fontWeight: '900',
-    fontSize: 13,
     letterSpacing: 1,
   },
   newListRow: {
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   newListLabel: {
-    fontSize: 14,
+    ...TypeScale.body,
     fontWeight: '800',
     color: Brand.ink,
   },
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   },
   confirmLabel: {
     color: Brand.paper,
-    fontSize: 14,
+    ...TypeScale.buttonLarge,
     fontWeight: '900',
     letterSpacing: 1.5,
   },
