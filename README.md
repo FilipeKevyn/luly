@@ -130,6 +130,44 @@ npm start
 
 ---
 
+## Prints
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://i.imgur.com/Z9K0bDn.jpeg" width="400" height="700" />
+      </td>
+      <td align="center">
+        <img src="https://i.imgur.com/twc6v6T.jpeg" width="400" height="700" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="https://i.imgur.com/rR9jShr.jpeg" width="400" height="700" />
+      </td>
+      <td>
+        <img src="https://i.imgur.com/UObWyfh.jpeg" width="400" height="700" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="https://i.imgur.com/KgNh8Yq.jpeg" width="400" height="700" />
+      </td>
+      <td>
+        <img src="https://i.imgur.com/MVEslIA.jpeg" width="400" height="700" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="https://i.imgur.com/bAqwAca.jpeg" width="400" height="700" />
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
 <div align="center">
 
 **Feito com Expo & React Native**

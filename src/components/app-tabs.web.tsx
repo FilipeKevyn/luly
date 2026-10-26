@@ -26,6 +26,9 @@ export default function AppTabs() {
           <TabTrigger name="inicio" href="/inicio" asChild>
             <TabButton icon="home">Início</TabButton>
           </TabTrigger>
+          <TabTrigger name="buscar" href="/buscar" asChild>
+            <TabButton icon="search">Buscar</TabButton>
+          </TabTrigger>
           <TabTrigger name="minha-lista" href="/minha-lista" asChild>
             <TabButton icon="bookmark">Listas</TabButton>
           </TabTrigger>

@@ -316,12 +316,25 @@ export function getNextMovie(id: number): Movie | null {
 }
 
 export function searchMovies(query: string): Movie[] {
-  const term = query.trim().toLowerCase();
+  const term = normalizeSearchText(query.trim());
   if (!term) {
     return catalog;
   }
-  return catalog.filter(
-    (movie) =>
-      movie.title.toLowerCase().includes(term) || movie.genres.some((genre) => genre.toLowerCase().includes(term))
+  return catalog.filter((movie) =>
+    [
+      movie.title,
+      movie.tagline,
+      movie.genre,
+      ...movie.genres,
+      movie.director,
+      ...movie.cast.map((member) => member.name),
+    ].some((value) => normalizeSearchText(value).includes(term))
   );
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }

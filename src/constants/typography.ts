@@ -17,6 +17,7 @@ export const TypeScale = {
   modalTitle: { fontSize: 23, lineHeight: 29 },
   cardHeadline: { fontSize: 28, lineHeight: 34 },
   sectionTitle: { fontSize: 21, lineHeight: 27 },
+  resultsTitle: { fontSize: 24, lineHeight: 30 },
   emptyTitle: { fontSize: 20, lineHeight: 26 },
   listTitle: { fontSize: 18, lineHeight: 24 },
   cardTitle: { fontSize: 16, lineHeight: 21 },

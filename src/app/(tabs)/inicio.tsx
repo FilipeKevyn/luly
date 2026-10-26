@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -222,7 +222,14 @@ export default function InicioScreen() {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{section.genre}</Text>
               <Pressable
-                onPress={() => showNotice('A busca chega em breve.')}
+                onPress={() =>
+                  router.navigate({
+                    pathname: '/(tabs)/buscar',
+                    params: { q: section.genre, t: String(Date.now()) },
+                  })
+                }
+                accessibilityRole="button"
+                accessibilityLabel={`Ver todos os filmes de ${section.genre}`}
                 style={({ pressed }) => [styles.sectionAction, pressed && styles.pressed]}>
                 <Text style={styles.sectionActionLabel}>VER TUDO</Text>
                 <MaterialIcons name="arrow-forward" size={14} color={Brand.red} />

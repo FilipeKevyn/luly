@@ -11,7 +11,7 @@ import { formatDuration } from '@/utils/format';
 
 type MovieCardProps = {
   movie: Movie;
-  variant?: 'carousel' | 'grid' | 'list';
+  variant?: 'carousel' | 'grid' | 'list' | 'search';
   onPress: () => void;
   onRemove?: () => void;
 };
@@ -44,18 +44,38 @@ export function MovieCard({ movie, variant = 'carousel', onPress, onRemove }: Mo
   }
 
   const isGrid = variant === 'grid';
+  const isSearch = variant === 'search';
+  const usesGridLayout = isGrid || isSearch;
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [isGrid ? styles.gridCard : styles.carouselCard, pressed && styles.pressed]}>
+      accessibilityRole="button"
+      accessibilityLabel={
+        isSearch ? `${movie.title}, ${movie.matchPercent}% para você` : movie.title
+      }
+      style={({ pressed }) => [
+        isSearch ? styles.searchCard : isGrid ? styles.gridCard : styles.carouselCard,
+        pressed && styles.pressed,
+      ]}>
       <HardShadow radius={6} offset={5} style={styles.posterFrame}>
         <Image
-          source={{ uri: movie.poster }}
-          style={isGrid ? styles.gridPoster : styles.carouselPoster}
+          source={{ uri: isSearch ? movie.hero : movie.poster }}
+          style={
+            isSearch
+              ? styles.searchPoster
+              : isGrid
+                ? styles.gridPoster
+                : styles.carouselPoster
+          }
           contentFit="cover"
           transition={150}
         />
+        {isSearch ? (
+          <View style={styles.matchBadge}>
+            <Text style={styles.matchBadgeText}>{movie.matchPercent}% para você</Text>
+          </View>
+        ) : null}
         {isGrid && movie.isNew ? (
           <View style={styles.newBadge}>
             <Text style={styles.newBadgeText}>NOVO</Text>
@@ -70,11 +90,11 @@ export function MovieCard({ movie, variant = 'carousel', onPress, onRemove }: Mo
           </Pressable>
         ) : null}
       </HardShadow>
-      <Text style={isGrid ? styles.gridTitle : styles.carouselTitle} numberOfLines={2}>
+      <Text style={usesGridLayout ? styles.gridTitle : styles.carouselTitle} numberOfLines={2}>
         {movie.title}
       </Text>
       <Text style={styles.meta}>
-        {movie.genre} • {isGrid ? movie.year : formatDuration(movie.durationMin)}
+        {movie.genre} • {usesGridLayout ? movie.year : formatDuration(movie.durationMin)}
       </Text>
     </Pressable>
   );
@@ -91,6 +111,9 @@ const styles = StyleSheet.create({
     color: Brand.ink,
   },
   gridCard: {
+    width: '48%',
+  },
+  searchCard: {
     width: '48%',
   },
   gridTitle: {
@@ -112,6 +135,28 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 2 / 3,
     borderRadius: 6,
+  },
+  searchPoster: {
+    width: '100%',
+    aspectRatio: 3 / 2,
+    borderRadius: 6,
+  },
+  matchBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#A9F5C7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 2,
+    borderWidth: 1.5,
+    borderColor: Brand.black,
+  },
+  matchBadgeText: {
+    ...TypeScale.micro,
+    fontWeight: '900',
+    letterSpacing: 0.2,
+    color: Brand.black,
   },
   newBadge: {
     position: 'absolute',

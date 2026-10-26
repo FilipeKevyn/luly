@@ -28,7 +28,7 @@ export default function EntradaScreen() {
             <Text style={styles.brand}>luly</Text>
           </View>
 
-          <Text style={styles.kicker}>SEU CINEMA, SUA ÓRBITA</Text>
+          <Text style={styles.kicker}>DÊ O PLAY, COMPANHEIRO</Text>
           <Text style={styles.title}>Histórias que brilham com você.</Text>
           <Text style={styles.subtitle}>
             Filmes incríveis, descobertas certeiras e uma lista só sua.
