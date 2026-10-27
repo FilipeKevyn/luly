@@ -1,31 +1,40 @@
 import type { PropsWithChildren } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 
-type HardShadowProps = PropsWithChildren<{
+interface HardShadowProps extends PropsWithChildren {
   offset?: number;
   radius?: number;
   color?: string;
   style?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
-}>;
+}
 
 export function HardShadow({
   children,
   offset = 5,
   radius = 0,
-  color = Brand.black,
+  color,
   style,
   containerStyle,
 }: HardShadowProps) {
+  const theme = useTheme();
+
   return (
     <View style={containerStyle}>
       <View
         pointerEvents="none"
         style={[
           styles.layer,
-          { top: offset, left: offset, right: -offset, bottom: -offset, backgroundColor: color, borderRadius: radius },
+          {
+            top: offset,
+            left: offset,
+            right: -offset,
+            bottom: -offset,
+            backgroundColor: color ?? theme.shadow,
+            borderRadius: radius,
+          },
         ]}
       />
       <View style={style}>{children}</View>

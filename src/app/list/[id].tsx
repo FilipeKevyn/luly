@@ -1,6 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,11 +11,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ThemedStatusBar } from '@/components/app-status-bar';
 import { HardShadow } from '@/components/hard-shadow';
 import { MovieCard } from '@/components/movie-card';
 import { ScreenMessage } from '@/components/screen-message';
 import { Text } from '@/components/text';
-import { Brand } from '@/constants/theme';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { useTheme, useThemedStyles } from '@/contexts/theme-context';
+import type { ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
 import { getMovieById, type Movie } from '@/data/movies';
 import {
@@ -43,7 +45,7 @@ export default function ListaScreen() {
   if (!Number.isFinite(id)) {
     return (
       <>
-        <StatusBar style="dark" />
+        <ThemedStatusBar />
         <ScreenMessage
           icon="bookmark-border"
           title="Lista não encontrada"
@@ -59,6 +61,8 @@ export default function ListaScreen() {
 }
 
 function ListaContent({ listaId }: { listaId: number }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<ListaState>({ status: 'loading' });
   const [layout, setLayout] = useState<LayoutMode>('grid');
@@ -135,9 +139,9 @@ function ListaContent({ listaId }: { listaId: number }) {
   if (state.status === 'loading') {
     return (
       <View style={styles.screen}>
-        <StatusBar style="dark" />
+        <ThemedStatusBar />
         <View style={[styles.loading, { paddingTop: insets.top }]}>
-          <ActivityIndicator color={Brand.red} />
+          <ActivityIndicator color={theme.accent} />
         </View>
       </View>
     );
@@ -146,7 +150,7 @@ function ListaContent({ listaId }: { listaId: number }) {
   if (state.status === 'missing') {
     return (
       <>
-        <StatusBar style="dark" />
+        <ThemedStatusBar />
         <ScreenMessage
           icon="bookmark-border"
           title="Lista não encontrada"
@@ -162,7 +166,7 @@ function ListaContent({ listaId }: { listaId: number }) {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 8 }]}
         showsVerticalScrollIndicator={false}>
@@ -170,13 +174,16 @@ function ListaContent({ listaId }: { listaId: number }) {
           <Pressable
             onPress={goBackOrHome}
             style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-            <MaterialIcons name="arrow-back" size={22} color={Brand.ink} />
+            <MaterialIcons name="arrow-back" size={22} color={theme.text} />
           </Pressable>
-          <Pressable
-            onPress={() => confirmDelete(lista)}
-            style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-            <MaterialIcons name="delete-outline" size={22} color={Brand.red} />
-          </Pressable>
+          <View style={styles.topBarActions}>
+            <ThemeToggle style={styles.themeToggle} />
+            <Pressable
+              onPress={() => confirmDelete(lista)}
+              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+              <MaterialIcons name="delete-outline" size={22} color={theme.accent} />
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.header}>
@@ -196,7 +203,7 @@ function ListaContent({ listaId }: { listaId: number }) {
               <MaterialIcons
                 name="grid-view"
                 size={20}
-                color={layout === 'grid' ? Brand.paper : Brand.ink}
+                color={layout === 'grid' ? theme.background : theme.text}
               />
             </Pressable>
             <Pressable
@@ -205,7 +212,7 @@ function ListaContent({ listaId }: { listaId: number }) {
               <MaterialIcons
                 name="view-list"
                 size={20}
-                color={layout === 'list' ? Brand.paper : Brand.ink}
+                color={layout === 'list' ? theme.background : theme.text}
               />
             </Pressable>
           </View>
@@ -214,7 +221,7 @@ function ListaContent({ listaId }: { listaId: number }) {
         {movies.length === 0 ? (
           <View style={styles.emptyBlock}>
             <View style={styles.emptyIcon}>
-              <MaterialIcons name="bookmark-border" size={32} color={Brand.paper} />
+              <MaterialIcons name="bookmark-border" size={32} color={theme.onAccent} />
             </View>
             <Text style={styles.emptyTitle}>Nada por aqui ainda</Text>
             <Text style={styles.emptyDescription}>
@@ -266,141 +273,152 @@ function ListaContent({ listaId }: { listaId: number }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Brand.paper,
-  },
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 14,
-  },
-  iconButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Brand.paper,
-  },
-  header: {
-    paddingHorizontal: 20,
-    gap: 4,
-  },
-  kicker: {
-    ...TypeScale.micro,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    color: Brand.red,
-  },
-  title: {
-    ...TypeScale.screenTitle,
-    fontWeight: '900',
-    color: Brand.ink,
-  },
-  subtitle: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    ...TypeScale.sectionTitle,
-    fontWeight: '900',
-    color: Brand.ink,
-  },
-  layoutToggle: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  layoutButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Brand.paper,
-  },
-  layoutButtonActive: {
-    backgroundColor: Brand.ink,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    rowGap: 24,
-  },
-  list: {
-    paddingHorizontal: 20,
-  },
-  emptyBlock: {
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingVertical: 32,
-    gap: 10,
-  },
-  emptyIcon: {
-    width: 68,
-    height: 68,
-    borderRadius: 18,
-    backgroundColor: Brand.red,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  emptyTitle: {
-    ...TypeScale.emptyTitle,
-    fontWeight: '900',
-    color: Brand.ink,
-    textAlign: 'center',
-  },
-  emptyDescription: {
-    ...TypeScale.body,
-    color: Brand.muted,
-    textAlign: 'center',
-  },
-  emptyButtonWrapper: {
-    marginTop: 8,
-  },
-  emptyButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 8,
-  },
-  emptyButtonPress: {
-    paddingHorizontal: 26,
-    paddingVertical: 15,
-  },
-  emptyButtonLabel: {
-    ...TypeScale.button,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    loading: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      marginBottom: 14,
+    },
+    topBarActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    themeToggle: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+    },
+    iconButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.surface,
+    },
+    header: {
+      paddingHorizontal: 20,
+      gap: 4,
+    },
+    kicker: {
+      ...TypeScale.micro,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+      color: theme.accent,
+    },
+    title: {
+      ...TypeScale.screenTitle,
+      fontWeight: '900',
+      color: theme.text,
+    },
+    subtitle: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      marginTop: 24,
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      ...TypeScale.sectionTitle,
+      fontWeight: '900',
+      color: theme.text,
+    },
+    layoutToggle: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    layoutButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.surface,
+    },
+    layoutButtonActive: {
+      backgroundColor: theme.text,
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      rowGap: 24,
+    },
+    list: {
+      paddingHorizontal: 20,
+    },
+    emptyBlock: {
+      alignItems: 'center',
+      paddingHorizontal: 40,
+      paddingVertical: 32,
+      gap: 10,
+    },
+    emptyIcon: {
+      width: 68,
+      height: 68,
+      borderRadius: 18,
+      backgroundColor: theme.accent,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 4,
+    },
+    emptyTitle: {
+      ...TypeScale.emptyTitle,
+      fontWeight: '900',
+      color: theme.text,
+      textAlign: 'center',
+    },
+    emptyDescription: {
+      ...TypeScale.body,
+      color: theme.textMuted,
+      textAlign: 'center',
+    },
+    emptyButtonWrapper: {
+      marginTop: 8,
+    },
+    emptyButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+    },
+    emptyButtonPress: {
+      paddingHorizontal: 26,
+      paddingVertical: 15,
+    },
+    emptyButtonLabel: {
+      ...TypeScale.button,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

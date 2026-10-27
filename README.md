@@ -29,6 +29,7 @@
 - **Filmes salvos** — grade com todos os títulos presentes em qualquer lista, além da visão de listas individuais.
 - **Player customizado** — controles próprios sobre `expo-video`, incluindo progresso, seek por toque, velocidade `1x`/`1.5x`/`2x` e tela cheia.
 - **A seguir na Luly** — troca direta para o próximo filme do catálogo sem sair do player.
+- **Tema claro e escuro** — botão de alternância em todas as telas, com preferência persistida e paleta semântica compartilhada.
 
 ---
 

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Text } from '@/components/text';
-import { Brand } from '@/constants/theme';
+import { useTheme, useThemedStyles } from '@/contexts/theme-context';
+import type { ThemePalette } from '@/constants/theme';
 import { FontFamily, TypeScale } from '@/constants/typography';
 import { createLista, USUARIO_DEMO_ID, type Lista } from '@/db/repositories';
 import { showNotice } from '@/utils/feedback';
@@ -14,6 +15,8 @@ type CreateListModalProps = {
 };
 
 export function CreateListModal({ visible, onClose, onCreated }: CreateListModalProps) {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -55,7 +58,8 @@ export function CreateListModal({ visible, onClose, onCreated }: CreateListModal
             value={name}
             onChangeText={setName}
             placeholder="Ex.: Favoritos da semana"
-            placeholderTextColor={Brand.muted}
+            placeholderTextColor={theme.textMuted}
+            selectionColor={theme.accent}
             style={styles.input}
             autoFocus
             returnKeyType="done"
@@ -77,76 +81,78 @@ export function CreateListModal({ visible, onClose, onCreated }: CreateListModal
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-  },
-  card: {
-    width: '100%',
-    backgroundColor: Brand.paper,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    padding: 20,
-    gap: 12,
-  },
-  title: {
-    ...TypeScale.modalTitle,
-    fontWeight: '900',
-    color: Brand.ink,
-  },
-  subtitle: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: Brand.black,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    fontFamily: FontFamily.bold,
-    color: Brand.ink,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-    marginTop: 4,
-  },
-  ghostButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 13,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-  },
-  ghostLabel: {
-    ...TypeScale.button,
-    fontWeight: '900',
-    letterSpacing: 1,
-    color: Brand.ink,
-  },
-  primaryButton: {
-    paddingHorizontal: 22,
-    paddingVertical: 13,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.red,
-  },
-  primaryLabel: {
-    ...TypeScale.button,
-    fontWeight: '900',
-    letterSpacing: 1,
-    color: Brand.paper,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 28,
+      backgroundColor: theme.backdrop,
+    },
+    card: {
+      width: '100%',
+      backgroundColor: theme.surface,
+      borderRadius: 18,
+      borderWidth: 2,
+      borderColor: theme.border,
+      padding: 20,
+      gap: 12,
+    },
+    title: {
+      ...TypeScale.modalTitle,
+      fontWeight: '900',
+      color: theme.text,
+    },
+    subtitle: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+    },
+    input: {
+      borderWidth: 2,
+      borderColor: theme.border,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      fontFamily: FontFamily.bold,
+      color: theme.text,
+      backgroundColor: theme.surface,
+    },
+    actions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      gap: 10,
+      marginTop: 4,
+    },
+    ghostButton: {
+      paddingHorizontal: 18,
+      paddingVertical: 13,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+    },
+    ghostLabel: {
+      ...TypeScale.button,
+      fontWeight: '900',
+      letterSpacing: 1,
+      color: theme.text,
+    },
+    primaryButton: {
+      paddingHorizontal: 22,
+      paddingVertical: 13,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.accent,
+    },
+    primaryLabel: {
+      ...TypeScale.button,
+      fontWeight: '900',
+      letterSpacing: 1,
+      color: theme.onAccent,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

@@ -13,8 +13,9 @@ import {
 
 import { HardShadow } from '@/components/hard-shadow';
 import { Text } from '@/components/text';
-import { Brand } from '@/constants/theme';
+import { useTheme, useThemedStyles } from '@/contexts/theme-context';
 import { FontFamily, TypeScale } from '@/constants/typography';
+import type { ThemePalette } from '@/constants/theme';
 import type { Movie } from '@/data/movies';
 import {
   addFilmeALista,
@@ -35,6 +36,8 @@ type AddToListSheetProps = {
 };
 
 export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToListSheetProps) {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [lists, setLists] = useState<ListaComContagem[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,13 +147,13 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
               </Text>
             </View>
             <Pressable onPress={handleClose} style={styles.closeButton}>
-              <MaterialIcons name="close" size={22} color={Brand.ink} />
+              <MaterialIcons name="close" size={22} color={theme.text} />
             </Pressable>
           </View>
 
           {loading ? (
             <View style={styles.loadingBox}>
-              <ActivityIndicator color={Brand.red} />
+              <ActivityIndicator color={theme.accent} />
             </View>
           ) : (
             <View style={styles.list}>
@@ -162,7 +165,9 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
                     onPress={() => toggleLista(lista)}
                     style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}>
                     <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-                      {checked ? <MaterialIcons name="check" size={16} color={Brand.paper} /> : null}
+                      {checked ? (
+                        <MaterialIcons name="check" size={16} color={theme.onAccent} />
+                      ) : null}
                     </View>
                     <Text style={styles.listName} numberOfLines={1}>
                       {lista.nome}
@@ -184,7 +189,8 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
                     value={newName}
                     onChangeText={setNewName}
                     placeholder="Nome da lista"
-                    placeholderTextColor={Brand.muted}
+                    placeholderTextColor={theme.textMuted}
+                    selectionColor={theme.accent}
                     style={styles.input}
                     autoFocus
                     returnKeyType="done"
@@ -201,7 +207,7 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
                   onPress={() => setCreating(true)}
                   style={({ pressed }) => [styles.newListRow, pressed && styles.pressed]}>
                   <View style={styles.plusBox}>
-                    <MaterialIcons name="add" size={18} color={Brand.ink} />
+                    <MaterialIcons name="add" size={18} color={theme.text} />
                   </View>
                   <Text style={styles.newListLabel}>Criar nova lista</Text>
                 </Pressable>
@@ -220,180 +226,182 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-  },
-  sheet: {
-    backgroundColor: Brand.paper,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 32,
-    gap: 14,
-    borderTopWidth: 2,
-    borderColor: Brand.black,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 44,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Brand.line,
-    marginBottom: 6,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerTexts: {
-    flex: 1,
-    gap: 2,
-  },
-  kicker: {
-    ...TypeScale.micro,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    color: Brand.red,
-  },
-  title: {
-    ...TypeScale.modalTitle,
-    fontWeight: '900',
-    color: Brand.ink,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Brand.paper,
-  },
-  loadingBox: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  list: {
-    gap: 10,
-  },
-  listRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.paper,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Brand.paper,
-  },
-  checkboxChecked: {
-    backgroundColor: Brand.red,
-    borderColor: Brand.black,
-  },
-  listName: {
-    flex: 1,
-    ...TypeScale.bodyLarge,
-    fontWeight: '800',
-    color: Brand.ink,
-  },
-  listCount: {
-    ...TypeScale.caption,
-    fontWeight: '800',
-    color: Brand.muted,
-  },
-  emptyText: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-    paddingVertical: 6,
-  },
-  createBox: {
-    flexDirection: 'row',
-    gap: 10,
-    alignItems: 'center',
-  },
-  input: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    fontFamily: FontFamily.bold,
-    color: Brand.ink,
-  },
-  createConfirm: {
-    backgroundColor: Brand.red,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    paddingHorizontal: 18,
-    paddingVertical: 13,
-  },
-  createConfirmLabel: {
-    color: Brand.paper,
-    ...TypeScale.button,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  newListRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 6,
-  },
-  plusBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  newListLabel: {
-    ...TypeScale.body,
-    fontWeight: '800',
-    color: Brand.ink,
-  },
-  confirmWrapper: {
-    marginTop: 4,
-  },
-  confirmButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 8,
-  },
-  confirmPress: {
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  confirmLabel: {
-    color: Brand.paper,
-    ...TypeScale.buttonLarge,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: theme.backdrop,
+    },
+    sheet: {
+      backgroundColor: theme.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 32,
+      gap: 14,
+      borderTopWidth: 2,
+      borderColor: theme.border,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 44,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: theme.borderSubtle,
+      marginBottom: 6,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    headerTexts: {
+      flex: 1,
+      gap: 2,
+    },
+    kicker: {
+      ...TypeScale.micro,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+      color: theme.accent,
+    },
+    title: {
+      ...TypeScale.modalTitle,
+      fontWeight: '900',
+      color: theme.text,
+    },
+    closeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.surface,
+    },
+    loadingBox: {
+      paddingVertical: 40,
+      alignItems: 'center',
+    },
+    list: {
+      gap: 10,
+    },
+    listRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+    },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.surface,
+    },
+    checkboxChecked: {
+      backgroundColor: theme.accent,
+      borderColor: theme.border,
+    },
+    listName: {
+      flex: 1,
+      ...TypeScale.bodyLarge,
+      fontWeight: '800',
+      color: theme.text,
+    },
+    listCount: {
+      ...TypeScale.caption,
+      fontWeight: '800',
+      color: theme.textMuted,
+    },
+    emptyText: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+      paddingVertical: 6,
+    },
+    createBox: {
+      flexDirection: 'row',
+      gap: 10,
+      alignItems: 'center',
+    },
+    input: {
+      flex: 1,
+      borderWidth: 2,
+      borderColor: theme.border,
+      borderRadius: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      fontSize: 15,
+      fontFamily: FontFamily.bold,
+      color: theme.text,
+      backgroundColor: theme.surface,
+    },
+    createConfirm: {
+      backgroundColor: theme.accent,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      paddingHorizontal: 18,
+      paddingVertical: 13,
+    },
+    createConfirmLabel: {
+      color: theme.onAccent,
+      ...TypeScale.button,
+      fontWeight: '900',
+      letterSpacing: 1,
+    },
+    newListRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 6,
+    },
+    plusBox: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    newListLabel: {
+      ...TypeScale.body,
+      fontWeight: '800',
+      color: theme.text,
+    },
+    confirmWrapper: {
+      marginTop: 4,
+    },
+    confirmButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+    },
+    confirmPress: {
+      alignItems: 'center',
+      paddingVertical: 16,
+    },
+    confirmLabel: {
+      color: theme.onAccent,
+      ...TypeScale.buttonLarge,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

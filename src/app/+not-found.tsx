@@ -1,12 +1,11 @@
-import { StatusBar } from 'expo-status-bar';
-
+import { ThemedStatusBar } from '@/components/app-status-bar';
 import { ScreenMessage } from '@/components/screen-message';
 import { goBackOrHome } from '@/utils/navigation';
 
 export default function NotFoundScreen() {
   return (
     <>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <ScreenMessage
         icon="explore-off"
         title="Tela não encontrada"

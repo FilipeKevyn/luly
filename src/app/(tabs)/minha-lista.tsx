@@ -1,17 +1,19 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ThemedStatusBar } from "@/components/app-status-bar";
 import { CreateListModal } from "@/components/create-list-modal";
 import { HardShadow } from "@/components/hard-shadow";
 import { ListCard, type ListaView } from "@/components/list-card";
 import { MovieCard } from "@/components/movie-card";
 import { Text } from "@/components/text";
-import { Brand } from "@/constants/theme";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme, useThemedStyles } from "@/contexts/theme-context";
+import type { ThemePalette } from "@/constants/theme";
 import { TypeScale } from "@/constants/typography";
 import { getMovieById, type Movie } from "@/data/movies";
 import {
@@ -28,6 +30,8 @@ type FilterKey = "todos" | "filmes" | "series" | "baixados";
 type ViewMode = "filmes" | "listas";
 
 export default function MinhaListaScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const [saved, setSaved] = useState<Movie[]>([]);
   const [listas, setListas] = useState<ListaView[]>([]);
@@ -84,22 +88,25 @@ export default function MinhaListaScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           <Text style={styles.title}>Listas</Text>
-          <Pressable
-            onPress={() => setCreateVisible(true)}
-            style={({ pressed }) => [
-              styles.moreButton,
-              pressed && styles.pressed,
-            ]}
-          >
-            <MaterialIcons name="add" size={24} color={Brand.ink} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <ThemeToggle style={styles.themeToggle} />
+            <Pressable
+              onPress={() => setCreateVisible(true)}
+              style={({ pressed }) => [
+                styles.moreButton,
+                pressed && styles.pressed,
+              ]}
+            >
+              <MaterialIcons name="add" size={24} color={theme.text} />
+            </Pressable>
+          </View>
         </View>
 
         {mode === "filmes" ? (
@@ -169,7 +176,7 @@ export default function MinhaListaScreen() {
                 <MaterialIcons
                   name="play-arrow"
                   size={24}
-                  color={Brand.paper}
+                  color={theme.accent}
                 />
               </View>
             </Pressable>
@@ -202,7 +209,7 @@ export default function MinhaListaScreen() {
               <MaterialIcons
                 name="grid-view"
                 size={20}
-                color={mode === "filmes" ? Brand.paper : Brand.ink}
+                color={mode === "filmes" ? theme.background : theme.text}
               />
             </Pressable>
             <Pressable
@@ -215,7 +222,7 @@ export default function MinhaListaScreen() {
               <MaterialIcons
                 name="view-list"
                 size={20}
-                color={mode === "listas" ? Brand.paper : Brand.ink}
+                color={mode === "listas" ? theme.background : theme.text}
               />
             </Pressable>
           </View>
@@ -228,7 +235,7 @@ export default function MinhaListaScreen() {
                 <MaterialIcons
                   name="bookmark-border"
                   size={32}
-                  color={Brand.paper}
+                  color={theme.onAccent}
                 />
               </View>
               <Text style={styles.emptyTitle}>Você ainda não criou listas</Text>
@@ -269,7 +276,7 @@ export default function MinhaListaScreen() {
                 ]}
               >
                 <View style={styles.plusBox}>
-                  <MaterialIcons name="add" size={18} color={Brand.ink} />
+                  <MaterialIcons name="add" size={18} color={theme.text} />
                 </View>
                 <Text style={styles.newListLabel}>Criar nova lista</Text>
               </Pressable>
@@ -282,7 +289,7 @@ export default function MinhaListaScreen() {
                 <MaterialIcons
                   name="bookmark-border"
                   size={32}
-                  color={Brand.paper}
+                  color={theme.onAccent}
                 />
               </View>
               <Text style={styles.emptyTitle}>Você ainda não salvou nada</Text>
@@ -325,7 +332,7 @@ export default function MinhaListaScreen() {
               <MaterialIcons
                 name={filter === "series" ? "movie" : "search-off"}
                 size={32}
-                color={Brand.paper}
+                color={theme.onAccent}
               />
             </View>
             <Text style={styles.emptyTitle}>
@@ -354,245 +361,256 @@ export default function MinhaListaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Brand.paper,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  title: {
-    ...TypeScale.screenTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  moreButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Brand.paper,
-  },
-  chipsRow: {
-    paddingHorizontal: 20,
-    gap: 10,
-    paddingBottom: 4,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.paper,
-  },
-  chipActive: {
-    backgroundColor: Brand.red,
-  },
-  chipDisabled: {
-    borderColor: Brand.line,
-    backgroundColor: Brand.canvas,
-  },
-  chipLabel: {
-    ...TypeScale.subtitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  chipLabelActive: {
-    color: Brand.paper,
-  },
-  chipLabelDisabled: {
-    color: Brand.muted,
-  },
-  continueWrapper: {
-    marginHorizontal: 20,
-    marginTop: 20,
-  },
-  continueCard: {
-    backgroundColor: Brand.paper,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.red,
-  },
-  continuePress: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 12,
-  },
-  continuePoster: {
-    width: 46,
-    height: 62,
-    borderRadius: 4,
-    backgroundColor: Brand.canvas,
-  },
-  continueInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  continueKicker: {
-    ...TypeScale.micro,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    color: Brand.red,
-  },
-  continueTitle: {
-    ...TypeScale.listTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  continueBar: {
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Brand.line,
-    overflow: "hidden",
-    marginTop: 2,
-  },
-  continueBarFill: {
-    width: "45%",
-    height: "100%",
-    backgroundColor: Brand.red,
-  },
-  continuePlay: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 2,
-    borderColor: Brand.red,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 26,
-    marginBottom: 16,
-  },
-  sectionTitles: {
-    flex: 1,
-    gap: 3,
-  },
-  sectionTitle: {
-    ...TypeScale.sectionTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  sectionSubtitle: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-  },
-  layoutToggle: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  layoutButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Brand.paper,
-  },
-  layoutButtonActive: {
-    backgroundColor: Brand.ink,
-  },
-  listasList: {
-    paddingHorizontal: 20,
-    gap: 18,
-  },
-  newListRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.paper,
-  },
-  plusBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  newListLabel: {
-    ...TypeScale.body,
-    fontWeight: "800",
-    color: Brand.ink,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    rowGap: 24,
-  },
-  emptyBlock: {
-    alignItems: "center",
-    paddingHorizontal: 40,
-    paddingVertical: 40,
-    gap: 10,
-  },
-  emptyIcon: {
-    width: 68,
-    height: 68,
-    borderRadius: 18,
-    backgroundColor: Brand.red,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  emptyTitle: {
-    ...TypeScale.emptyTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-    textAlign: "center",
-  },
-  emptyDescription: {
-    ...TypeScale.body,
-    color: Brand.muted,
-    textAlign: "center",
-  },
-  emptyButtonWrapper: {
-    marginTop: 8,
-  },
-  emptyButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 8,
-  },
-  emptyButtonPress: {
-    paddingHorizontal: 26,
-    paddingVertical: 15,
-  },
-  emptyButtonLabel: {
-    ...TypeScale.button,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      marginBottom: 16,
+    },
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    themeToggle: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+    },
+    title: {
+      ...TypeScale.screenTitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    moreButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.surface,
+    },
+    chipsRow: {
+      paddingHorizontal: 20,
+      gap: 10,
+      paddingBottom: 4,
+    },
+    chip: {
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+    },
+    chipActive: {
+      backgroundColor: theme.accent,
+    },
+    chipDisabled: {
+      borderColor: theme.borderSubtle,
+      backgroundColor: theme.surfaceMuted,
+    },
+    chipLabel: {
+      ...TypeScale.subtitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    chipLabelActive: {
+      color: theme.onAccent,
+    },
+    chipLabelDisabled: {
+      color: theme.textMuted,
+    },
+    continueWrapper: {
+      marginHorizontal: 20,
+      marginTop: 20,
+    },
+    continueCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.accent,
+    },
+    continuePress: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 12,
+    },
+    continuePoster: {
+      width: 46,
+      height: 62,
+      borderRadius: 4,
+      backgroundColor: theme.surfaceMuted,
+    },
+    continueInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    continueKicker: {
+      ...TypeScale.micro,
+      fontWeight: "900",
+      letterSpacing: 1.5,
+      color: theme.accent,
+    },
+    continueTitle: {
+      ...TypeScale.listTitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    continueBar: {
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: theme.borderSubtle,
+      overflow: "hidden",
+      marginTop: 2,
+    },
+    continueBarFill: {
+      width: "45%",
+      height: "100%",
+      backgroundColor: theme.accent,
+    },
+    continuePlay: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      borderWidth: 2,
+      borderColor: theme.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    sectionHeader: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      marginTop: 26,
+      marginBottom: 16,
+    },
+    sectionTitles: {
+      flex: 1,
+      gap: 3,
+    },
+    sectionTitle: {
+      ...TypeScale.sectionTitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    sectionSubtitle: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+    },
+    layoutToggle: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    layoutButton: {
+      width: 38,
+      height: 38,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.surface,
+    },
+    layoutButtonActive: {
+      backgroundColor: theme.text,
+    },
+    listasList: {
+      paddingHorizontal: 20,
+      gap: 18,
+    },
+    newListRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+    },
+    plusBox: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    newListLabel: {
+      ...TypeScale.body,
+      fontWeight: "800",
+      color: theme.text,
+    },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      rowGap: 24,
+    },
+    emptyBlock: {
+      alignItems: "center",
+      paddingHorizontal: 40,
+      paddingVertical: 40,
+      gap: 10,
+    },
+    emptyIcon: {
+      width: 68,
+      height: 68,
+      borderRadius: 18,
+      backgroundColor: theme.accent,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+    },
+    emptyTitle: {
+      ...TypeScale.emptyTitle,
+      fontWeight: "900",
+      color: theme.text,
+      textAlign: "center",
+    },
+    emptyDescription: {
+      ...TypeScale.body,
+      color: theme.textMuted,
+      textAlign: "center",
+    },
+    emptyButtonWrapper: {
+      marginTop: 8,
+    },
+    emptyButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+    },
+    emptyButtonPress: {
+      paddingHorizontal: 26,
+      paddingVertical: 15,
+    },
+    emptyButtonLabel: {
+      ...TypeScale.button,
+      fontWeight: "900",
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

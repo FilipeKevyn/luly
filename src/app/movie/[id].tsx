@@ -1,7 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
 import {
   Pressable,
@@ -13,10 +12,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AddToListSheet } from "@/components/add-to-list-sheet";
+import { ThemedStatusBar } from "@/components/app-status-bar";
 import { HardShadow } from "@/components/hard-shadow";
 import { ScreenMessage } from "@/components/screen-message";
 import { Text } from "@/components/text";
-import { Brand } from "@/constants/theme";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme, useThemedStyles } from "@/contexts/theme-context";
+import { Brand, type ThemePalette } from "@/constants/theme";
 import { TypeScale } from "@/constants/typography";
 import { getMovieById, type Movie } from "@/data/movies";
 import { isFilmeEmAlgumaLista, USUARIO_DEMO_ID } from "@/db/repositories";
@@ -32,7 +34,7 @@ export default function MovieDetailsScreen() {
   if (!movie) {
     return (
       <>
-        <StatusBar style="dark" />
+        <ThemedStatusBar />
         <ScreenMessage
           icon="movie"
           title="Filme não encontrado"
@@ -48,6 +50,8 @@ export default function MovieDetailsScreen() {
 }
 
 function MovieDetailsContent({ movie }: { movie: Movie }) {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const [inList, setInList] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -78,7 +82,7 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -99,17 +103,20 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
                 pressed && styles.pressed,
               ]}
             >
-              <MaterialIcons name="arrow-back" size={22} color={Brand.paper} />
+              <MaterialIcons name="arrow-back" size={22} color={theme.onMedia} />
             </Pressable>
-            <Pressable
-              onPress={shareMovie}
-              style={({ pressed }) => [
-                styles.iconButton,
-                pressed && styles.pressed,
-              ]}
-            >
-              <MaterialIcons name="share" size={20} color={Brand.paper} />
-            </Pressable>
+            <View style={styles.topBarActions}>
+              <ThemeToggle variant="onMedia" style={styles.themeToggle} />
+              <Pressable
+                onPress={shareMovie}
+                style={({ pressed }) => [
+                  styles.iconButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <MaterialIcons name="share" size={20} color={theme.onMedia} />
+              </Pressable>
+            </View>
           </View>
           <View style={styles.heroContent}>
             {movie.isOriginal ? (
@@ -118,7 +125,7 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
               </View>
             ) : null}
             <View style={styles.ratingRow}>
-              <MaterialIcons name="star" size={18} color={Brand.yellow} />
+              <MaterialIcons name="star" size={18} color={theme.highlight} />
               <Text style={styles.ratingText}>
                 {formatRating(movie.rating)}
               </Text>
@@ -148,7 +155,7 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
               <MaterialIcons
                 name="play-circle-filled"
                 size={22}
-                color={Brand.paper}
+                color={theme.onAccent}
               />
               <Text style={styles.watchLabel}>ASSISTIR AGORA</Text>
             </Pressable>
@@ -165,7 +172,7 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
               <MaterialIcons
                 name={inList ? "check" : "add"}
                 size={24}
-                color={inList ? Brand.paper : Brand.ink}
+                color={inList ? theme.onAccent : theme.text}
               />
             </Pressable>
             <Text style={styles.toggleLabel}>Na lista</Text>
@@ -220,200 +227,210 @@ function MovieDetailsContent({ movie }: { movie: Movie }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Brand.canvas,
-  },
-  scroll: {
-    paddingBottom: 40,
-  },
-  hero: {
-    marginHorizontal: 20,
-    borderRadius: 12,
-    overflow: "hidden",
-    backgroundColor: Brand.black,
-    height: 420,
-  },
-  heroImage: {
-    ...StyleSheet.absoluteFill,
-  },
-  heroScrim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-  },
-  topBar: {
-    position: "absolute",
-    top: 12,
-    left: 12,
-    right: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  iconButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroContent: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 18,
-    gap: 6,
-  },
-  originalBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: Brand.red,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 3,
-    borderWidth: 2,
-    borderColor: Brand.black,
-  },
-  originalText: {
-    ...TypeScale.micro,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  ratingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  ratingText: {
-    ...TypeScale.cardTitle,
-    fontWeight: "900",
-    color: Brand.paper,
-  },
-  title: {
-    ...TypeScale.heroTitle,
-    fontWeight: "900",
-    color: Brand.paper,
-  },
-  metaLine: {
-    ...TypeScale.subtitle,
-    fontWeight: "700",
-    color: "rgba(255, 255, 255, 0.85)",
-  },
-  actionsRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 14,
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
-  watchWrapper: {
-    flex: 1,
-  },
-  watchButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 8,
-  },
-  watchPress: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 17,
-  },
-  watchLabel: {
-    ...TypeScale.buttonLarge,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  toggleColumn: {
-    alignItems: "center",
-    gap: 4,
-  },
-  toggleButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.paper,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  toggleButtonActive: {
-    backgroundColor: Brand.red,
-  },
-  toggleLabel: {
-    ...TypeScale.label,
-    fontWeight: "800",
-    color: Brand.ink,
-  },
-  body: {
-    paddingHorizontal: 20,
-    marginTop: 28,
-    gap: 12,
-  },
-  sectionTitle: {
-    ...TypeScale.sectionTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  synopsis: {
-    ...TypeScale.bodyLarge,
-    color: "#3A3A3D",
-  },
-  directionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 6,
-  },
-  directionLabel: {
-    ...TypeScale.subtitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  directionValue: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-  },
-  directionExtra: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-  },
-  castTitle: {
-    marginTop: 16,
-  },
-  castRow: {
-    gap: 14,
-    paddingTop: 4,
-    paddingBottom: 6,
-  },
-  castCard: {
-    width: 88,
-    gap: 4,
-  },
-  castAvatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.canvas,
-  },
-  castName: {
-    marginTop: 4,
-    ...TypeScale.caption,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  castRole: {
-    ...TypeScale.label,
-    color: Brand.muted,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.backgroundMuted,
+    },
+    scroll: {
+      paddingBottom: 40,
+    },
+    hero: {
+      marginHorizontal: 20,
+      borderRadius: 12,
+      overflow: "hidden",
+      backgroundColor: theme.mediaBackground,
+      height: 420,
+    },
+    heroImage: {
+      ...StyleSheet.absoluteFill,
+    },
+    heroScrim: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: "rgba(0, 0, 0, 0.3)",
+    },
+    topBar: {
+      position: "absolute",
+      top: 12,
+      left: 12,
+      right: 12,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    topBarActions: {
+      flexDirection: "row",
+      gap: 10,
+    },
+    themeToggle: {
+      width: 42,
+      height: 42,
+      borderRadius: 8,
+    },
+    iconButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 8,
+      backgroundColor: "rgba(0, 0, 0, 0.45)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    heroContent: {
+      position: "absolute",
+      left: 16,
+      right: 16,
+      bottom: 18,
+      gap: 6,
+    },
+    originalBadge: {
+      alignSelf: "flex-start",
+      backgroundColor: theme.accent,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 3,
+      borderWidth: 2,
+      borderColor: Brand.black,
+    },
+    originalText: {
+      ...TypeScale.micro,
+      fontWeight: "900",
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    ratingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    ratingText: {
+      ...TypeScale.cardTitle,
+      fontWeight: "900",
+      color: theme.onMedia,
+    },
+    title: {
+      ...TypeScale.heroTitle,
+      fontWeight: "900",
+      color: theme.onMedia,
+    },
+    metaLine: {
+      ...TypeScale.subtitle,
+      fontWeight: "700",
+      color: theme.onMediaMuted,
+    },
+    actionsRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 14,
+      paddingHorizontal: 20,
+      marginTop: 20,
+    },
+    watchWrapper: {
+      flex: 1,
+    },
+    watchButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+    },
+    watchPress: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      paddingVertical: 17,
+    },
+    watchLabel: {
+      ...TypeScale.buttonLarge,
+      fontWeight: "900",
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    toggleColumn: {
+      alignItems: "center",
+      gap: 4,
+    },
+    toggleButton: {
+      width: 56,
+      height: 56,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    toggleButtonActive: {
+      backgroundColor: theme.accent,
+    },
+    toggleLabel: {
+      ...TypeScale.label,
+      fontWeight: "800",
+      color: theme.text,
+    },
+    body: {
+      paddingHorizontal: 20,
+      marginTop: 28,
+      gap: 12,
+    },
+    sectionTitle: {
+      ...TypeScale.sectionTitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    synopsis: {
+      ...TypeScale.bodyLarge,
+      color: theme.textBody,
+    },
+    directionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 6,
+    },
+    directionLabel: {
+      ...TypeScale.subtitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    directionValue: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+    },
+    directionExtra: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+    },
+    castTitle: {
+      marginTop: 16,
+    },
+    castRow: {
+      gap: 14,
+      paddingTop: 4,
+      paddingBottom: 6,
+    },
+    castCard: {
+      width: 88,
+      gap: 4,
+    },
+    castAvatar: {
+      width: 88,
+      height: 88,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.surfaceMuted,
+    },
+    castName: {
+      marginTop: 4,
+      ...TypeScale.caption,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    castRole: {
+      ...TypeScale.label,
+      color: theme.textMuted,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

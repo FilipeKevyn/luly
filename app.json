@@ -7,7 +7,7 @@
     "backgroundColor": "#E81E3A",
     "icon": "./assets/images/icon.png",
     "scheme": "luly",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
     },

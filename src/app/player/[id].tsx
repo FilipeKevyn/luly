@@ -8,10 +8,12 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ThemedStatusBar } from '@/components/app-status-bar';
 import { HardShadow } from '@/components/hard-shadow';
 import { ScreenMessage } from '@/components/screen-message';
 import { Text } from '@/components/text';
-import { Brand } from '@/constants/theme';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { Brand, Palettes } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
 import { getMovieById, getNextMovie, type Movie } from '@/data/movies';
 import { marcarFinalizado, marcarIniciado, USUARIO_DEMO_ID } from '@/db/repositories';
@@ -20,6 +22,7 @@ import { formatClock, formatDuration, formatRemaining, formatWatched } from '@/u
 import { goBackOrHome } from '@/utils/navigation';
 
 const RATES = [1, 1.5, 2];
+const PlayerColors = Palettes.dark;
 
 export default function PlayerScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -29,7 +32,7 @@ export default function PlayerScreen() {
   if (!movie) {
     return (
       <>
-        <StatusBar style="light" />
+        <ThemedStatusBar />
         <ScreenMessage
           icon="movie"
           title="Vídeo indisponível"
@@ -137,14 +140,19 @@ function PlayerContent({ movie }: { movie: Movie }) {
       <StatusBar style="light" />
       <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
         <Pressable onPress={closePlayer} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-          <MaterialIcons name="close" size={24} color={Brand.paper} />
+          <MaterialIcons name="close" size={24} color={Brand.white} />
         </Pressable>
-        <Text style={styles.castLabel}>Reproduzindo na TV da sala</Text>
-        <Pressable
-          onPress={() => showNotice('Transmissão para TV em breve.')}
-          style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-          <MaterialIcons name="cast" size={22} color={Brand.paper} />
-        </Pressable>
+        <Text style={styles.castLabel} numberOfLines={1}>
+          Reproduzindo na TV da sala
+        </Text>
+        <View style={styles.topBarActions}>
+          <ThemeToggle variant="onMedia" style={styles.themeToggle} />
+          <Pressable
+            onPress={() => showNotice('Transmissão para TV em breve.')}
+            style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+            <MaterialIcons name="cast" size={22} color={Brand.white} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.videoBox}>
@@ -174,26 +182,26 @@ function PlayerContent({ movie }: { movie: Movie }) {
           </View>
         ) : status === 'loading' ? (
           <View style={styles.videoOverlay} pointerEvents="none">
-            <ActivityIndicator color={Brand.paper} size="large" />
+            <ActivityIndicator color={Brand.white} size="large" />
           </View>
         ) : (
           <View style={styles.centerControls} pointerEvents="box-none">
             <Pressable
               onPress={() => seekBy(-10)}
               style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}>
-              <MaterialIcons name="replay-10" size={28} color={Brand.paper} />
+              <MaterialIcons name="replay-10" size={28} color={Brand.white} />
             </Pressable>
             <HardShadow offset={5} radius={10} style={styles.playButton}>
               <Pressable
                 onPress={togglePlay}
                 style={({ pressed }) => [styles.playPress, pressed && styles.pressed]}>
-                <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={38} color={Brand.paper} />
+                <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={38} color={Brand.white} />
               </Pressable>
             </HardShadow>
             <Pressable
               onPress={() => seekBy(10)}
               style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}>
-              <MaterialIcons name="forward-10" size={28} color={Brand.paper} />
+              <MaterialIcons name="forward-10" size={28} color={Brand.white} />
             </Pressable>
           </View>
         )}
@@ -218,19 +226,19 @@ function PlayerContent({ movie }: { movie: Movie }) {
           <Pressable
             onPress={() => showNotice('Áudio e legendas em breve.')}
             style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
-            <MaterialIcons name="subtitles" size={16} color={Brand.paper} />
+            <MaterialIcons name="subtitles" size={16} color={Brand.white} />
             <Text style={styles.controlChipLabel}>Áudio e legendas</Text>
           </Pressable>
           <Pressable
             onPress={cycleRate}
             style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
-            <MaterialIcons name="speed" size={16} color={Brand.paper} />
+            <MaterialIcons name="speed" size={16} color={Brand.white} />
             <Text style={styles.controlChipLabel}>{rate}x</Text>
           </Pressable>
           <Pressable
             onPress={() => videoRef.current?.enterFullscreen()}
             style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
-            <MaterialIcons name="fullscreen" size={18} color={Brand.paper} />
+            <MaterialIcons name="fullscreen" size={18} color={Brand.white} />
           </Pressable>
         </View>
 
@@ -260,7 +268,7 @@ function PlayerContent({ movie }: { movie: Movie }) {
                 </Text>
               </View>
               <View style={styles.nextPlay}>
-                <MaterialIcons name="play-arrow" size={24} color={Brand.paper} />
+                <MaterialIcons name="play-arrow" size={24} color={Brand.white} />
               </View>
             </Pressable>
           </View>
@@ -273,7 +281,7 @@ function PlayerContent({ movie }: { movie: Movie }) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Brand.night,
+    backgroundColor: PlayerColors.background,
   },
   topBar: {
     flexDirection: 'row',
@@ -283,11 +291,21 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 10,
   },
+  topBarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  themeToggle: {
+    width: 42,
+    height: 42,
+    borderRadius: 8,
+  },
   iconButton: {
     width: 42,
     height: 42,
     borderRadius: 8,
-    backgroundColor: Brand.nightSoft,
+    backgroundColor: PlayerColors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -318,7 +336,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     ...TypeScale.listTitle,
     fontWeight: '900',
-    color: Brand.paper,
+    color: Brand.white,
   },
   errorDescription: {
     ...TypeScale.subtitle,
@@ -336,13 +354,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 2,
-    borderColor: Brand.paper,
+    borderColor: Brand.white,
   },
   retryLabel: {
     ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
-    color: Brand.paper,
+    color: Brand.white,
   },
   backButton: {
     borderRadius: 8,
@@ -355,7 +373,7 @@ const styles = StyleSheet.create({
     ...TypeScale.button,
     fontWeight: '900',
     letterSpacing: 1,
-    color: Brand.paper,
+    color: Brand.white,
   },
   centerControls: {
     ...StyleSheet.absoluteFill,
@@ -398,7 +416,7 @@ const styles = StyleSheet.create({
   timeText: {
     ...TypeScale.caption,
     fontWeight: '800',
-    color: Brand.paper,
+    color: Brand.white,
   },
   timeRest: {
     ...TypeScale.caption,
@@ -425,7 +443,7 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     marginLeft: -6,
-    backgroundColor: Brand.paper,
+    backgroundColor: Brand.white,
   },
   info: {
     flex: 1,
@@ -449,19 +467,19 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: Brand.nightLine,
-    backgroundColor: Brand.nightSoft,
+    borderColor: PlayerColors.borderSubtle,
+    backgroundColor: PlayerColors.surface,
   },
   controlChipLabel: {
     ...TypeScale.caption,
     fontWeight: '800',
-    color: Brand.paper,
+    color: Brand.white,
   },
   movieTitle: {
     marginTop: 10,
     ...TypeScale.playerTitle,
     fontWeight: '900',
-    color: Brand.paper,
+    color: Brand.white,
   },
   movieSub: {
     ...TypeScale.subtitle,
@@ -480,7 +498,7 @@ const styles = StyleSheet.create({
     ...TypeScale.caption,
     fontWeight: '900',
     letterSpacing: 1.5,
-    color: Brand.paper,
+    color: Brand.white,
   },
   nextHint: {
     ...TypeScale.caption,
@@ -492,9 +510,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: Brand.nightSoft,
+    backgroundColor: PlayerColors.surface,
     borderWidth: 1.5,
-    borderColor: Brand.nightLine,
+    borderColor: PlayerColors.borderSubtle,
   },
   nextPoster: {
     width: 64,
@@ -509,7 +527,7 @@ const styles = StyleSheet.create({
   nextTitle: {
     ...TypeScale.cardTitleSmall,
     fontWeight: '900',
-    color: Brand.paper,
+    color: Brand.white,
   },
   nextMeta: {
     ...TypeScale.caption,

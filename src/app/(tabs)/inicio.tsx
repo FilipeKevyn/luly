@@ -1,7 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useFocusEffect } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Pressable,
@@ -14,10 +13,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddToListSheet } from '@/components/add-to-list-sheet';
+import { ThemedStatusBar } from '@/components/app-status-bar';
 import { HardShadow } from '@/components/hard-shadow';
 import { MovieCard } from '@/components/movie-card';
 import { Text } from '@/components/text';
-import { Brand } from '@/constants/theme';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { useTheme, useThemedStyles } from '@/contexts/theme-context';
+import { Brand, type ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
 import { getFeaturedMovies, getHomeSections, type Movie } from '@/data/movies';
 import { showNotice } from '@/utils/feedback';
@@ -28,6 +30,8 @@ const AVATAR_URI = 'https://picsum.photos/seed/luly-user/200/200';
 const HERO_AUTO_ADVANCE_MS = 5000;
 
 export default function InicioScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const featuredMovies = getFeaturedMovies();
   const slideCount = featuredMovies.length;
@@ -108,20 +112,21 @@ export default function InicioScreen() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
         showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.brandRow}>
-            <MaterialIcons name="star" size={24} color={Brand.ink} />
+            <MaterialIcons name="star" size={24} color={theme.text} />
             <Text style={styles.brand}>luly</Text>
           </View>
           <View style={styles.headerActions}>
+            <ThemeToggle />
             <Pressable
               onPress={() => showNotice('Notificações em breve.')}
               style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}>
-              <MaterialIcons name="notifications-none" size={24} color={Brand.ink} />
+              <MaterialIcons name="notifications-none" size={24} color={theme.text} />
             </Pressable>
             <Pressable
               onPress={() => showNotice('Perfil chega em breve.')}
@@ -173,7 +178,7 @@ export default function InicioScreen() {
                 </View>
                 <View style={styles.heroContent}>
                   <View style={styles.heroMetaRow}>
-                    <MaterialIcons name="star" size={15} color={Brand.yellow} />
+                    <MaterialIcons name="star" size={15} color={theme.highlight} />
                     <Text style={styles.heroRating}>{formatRating(movie.rating)}</Text>
                     <Text style={styles.heroGenre}>{movie.genre}</Text>
                   </View>
@@ -183,7 +188,7 @@ export default function InicioScreen() {
                       <Pressable
                         onPress={() => openPlayer(movie.id)}
                         style={({ pressed }) => [styles.watchPress, pressed && styles.pressed]}>
-                        <MaterialIcons name="play-arrow" size={22} color={Brand.paper} />
+                        <MaterialIcons name="play-arrow" size={22} color={theme.onAccent} />
                         <Text style={styles.watchLabel}>ASSISTIR</Text>
                       </Pressable>
                     </HardShadow>
@@ -191,7 +196,7 @@ export default function InicioScreen() {
                       <Pressable
                         onPress={() => openSheet(movie)}
                         style={({ pressed }) => [styles.addPress, pressed && styles.pressed]}>
-                        <MaterialIcons name="add" size={26} color={Brand.ink} />
+                        <MaterialIcons name="add" size={26} color={theme.text} />
                       </Pressable>
                     </HardShadow>
                   </View>
@@ -232,7 +237,7 @@ export default function InicioScreen() {
                 accessibilityLabel={`Ver todos os filmes de ${section.genre}`}
                 style={({ pressed }) => [styles.sectionAction, pressed && styles.pressed]}>
                 <Text style={styles.sectionActionLabel}>VER TUDO</Text>
-                <MaterialIcons name="arrow-forward" size={14} color={Brand.red} />
+                <MaterialIcons name="arrow-forward" size={14} color={theme.accent} />
               </Pressable>
             </View>
             <ScrollView
@@ -256,200 +261,201 @@ export default function InicioScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Brand.paper,
-  },
-  scroll: {
-    paddingBottom: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  brand: {
-    fontSize: 26,
-    lineHeight: 32,
-    fontWeight: '900',
-    color: Brand.ink,
-    letterSpacing: 0.5,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Brand.paper,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    backgroundColor: Brand.canvas,
-  },
-  heroViewport: {
-    marginHorizontal: 20,
-  },
-  heroScroll: {
-    width: '100%',
-  },
-  heroFrame: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: Brand.black,
-    height: 420,
-  },
-  heroImage: {
-    ...StyleSheet.absoluteFill,
-  },
-  heroScrim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-  },
-  heroBadge: {
-    position: 'absolute',
-    top: 14,
-    left: 14,
-    backgroundColor: Brand.red,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 3,
-    borderWidth: 2,
-    borderColor: Brand.black,
-  },
-  heroBadgeText: {
-    ...TypeScale.micro,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  heroContent: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 16,
-    gap: 8,
-  },
-  heroMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  heroRating: {
-    ...TypeScale.subtitle,
-    fontWeight: '900',
-    color: Brand.paper,
-  },
-  heroGenre: {
-    marginLeft: 4,
-    ...TypeScale.subtitle,
-    fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.85)',
-  },
-  heroTitle: {
-    ...TypeScale.heroTitle,
-    fontWeight: '900',
-    color: Brand.paper,
-  },
-  heroActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 6,
-  },
-  watchButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 6,
-  },
-  watchPress: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  watchLabel: {
-    ...TypeScale.button,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  addButton: {
-    backgroundColor: Brand.paper,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Brand.black,
-  },
-  addPress: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 18,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Brand.line,
-  },
-  dotActive: {
-    backgroundColor: Brand.ink,
-  },
-  section: {
-    marginBottom: 26,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    ...TypeScale.sectionTitle,
-    fontWeight: '900',
-    color: Brand.ink,
-  },
-  sectionAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  sectionActionLabel: {
-    ...TypeScale.caption,
-    fontWeight: '900',
-    letterSpacing: 1,
-    color: Brand.red,
-  },
-  row: {
-    paddingHorizontal: 20,
-    gap: 16,
-    paddingBottom: 6,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    scroll: {
+      paddingBottom: 32,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+    },
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    brand: {
+      fontSize: 26,
+      lineHeight: 32,
+      fontWeight: '900',
+      color: theme.text,
+      letterSpacing: 0.5,
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    headerButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.surface,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      borderWidth: 2,
+      borderColor: theme.border,
+      backgroundColor: theme.surfaceMuted,
+    },
+    heroViewport: {
+      marginHorizontal: 20,
+    },
+    heroScroll: {
+      width: '100%',
+    },
+    heroFrame: {
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: theme.mediaBackground,
+      height: 420,
+    },
+    heroImage: {
+      ...StyleSheet.absoluteFill,
+    },
+    heroScrim: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    },
+    heroBadge: {
+      position: 'absolute',
+      top: 14,
+      left: 14,
+      backgroundColor: theme.accent,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 3,
+      borderWidth: 2,
+      borderColor: Brand.black,
+    },
+    heroBadgeText: {
+      ...TypeScale.micro,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    heroContent: {
+      position: 'absolute',
+      left: 16,
+      right: 16,
+      bottom: 16,
+      gap: 8,
+    },
+    heroMetaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    heroRating: {
+      ...TypeScale.subtitle,
+      fontWeight: '900',
+      color: theme.onMedia,
+    },
+    heroGenre: {
+      marginLeft: 4,
+      ...TypeScale.subtitle,
+      fontWeight: '700',
+      color: theme.onMediaMuted,
+    },
+    heroTitle: {
+      ...TypeScale.heroTitle,
+      fontWeight: '900',
+      color: theme.onMedia,
+    },
+    heroActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      marginTop: 6,
+    },
+    watchButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 6,
+    },
+    watchPress: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    watchLabel: {
+      ...TypeScale.button,
+      fontWeight: '900',
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    addButton: {
+      backgroundColor: theme.surface,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: theme.border,
+    },
+    addPress: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    dotsRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 18,
+    },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.borderSubtle,
+    },
+    dotActive: {
+      backgroundColor: theme.text,
+    },
+    section: {
+      marginBottom: 26,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      ...TypeScale.sectionTitle,
+      fontWeight: '900',
+      color: theme.text,
+    },
+    sectionAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    sectionActionLabel: {
+      ...TypeScale.caption,
+      fontWeight: '900',
+      letterSpacing: 1,
+      color: theme.accent,
+    },
+    row: {
+      paddingHorizontal: 20,
+      gap: 16,
+      paddingBottom: 6,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

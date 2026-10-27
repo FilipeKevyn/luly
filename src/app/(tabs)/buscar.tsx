@@ -1,6 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useMemo, useRef, useState } from "react";
 import {
   Modal,
@@ -13,10 +12,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { ThemedStatusBar } from "@/components/app-status-bar";
 import { HardShadow } from "@/components/hard-shadow";
 import { MovieCard } from "@/components/movie-card";
 import { Text } from "@/components/text";
-import { Brand } from "@/constants/theme";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme, useThemedStyles } from "@/contexts/theme-context";
+import type { ThemePalette } from "@/constants/theme";
 import { FontFamily, TypeScale } from "@/constants/typography";
 import { searchMovies, type Movie } from "@/data/movies";
 import { openMovie } from "@/utils/navigation";
@@ -64,6 +66,8 @@ interface SearchContentProps {
 }
 
 function SearchContent({ initialQuery }: SearchContentProps) {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState(initialQuery);
   const [filter, setFilter] = useState<SearchFilterKey>("tudo");
@@ -106,7 +110,7 @@ function SearchContent({ initialQuery }: SearchContentProps) {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="dark" />
+      <ThemedStatusBar />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
         showsVerticalScrollIndicator={false}
@@ -115,6 +119,7 @@ function SearchContent({ initialQuery }: SearchContentProps) {
       >
         <View style={styles.header}>
           <Text style={styles.title}>Descobrir</Text>
+          <ThemeToggle style={styles.themeToggle} />
         </View>
 
         <HardShadow
@@ -124,15 +129,15 @@ function SearchContent({ initialQuery }: SearchContentProps) {
           style={styles.searchField}
         >
           <View style={styles.searchRow}>
-            <MaterialIcons name="search" size={22} color={Brand.red} />
+            <MaterialIcons name="search" size={22} color={theme.accent} />
             <TextInput
               ref={inputRef}
               value={query}
               onChangeText={setQuery}
               onSubmitEditing={() => inputRef.current?.blur()}
               placeholder={SEARCH_PLACEHOLDER}
-              placeholderTextColor={Brand.muted}
-              selectionColor={Brand.red}
+              placeholderTextColor={theme.textMuted}
+              selectionColor={theme.accent}
               returnKeyType="search"
               autoCapitalize="none"
               autoCorrect={false}
@@ -147,7 +152,7 @@ function SearchContent({ initialQuery }: SearchContentProps) {
                 accessibilityLabel="Limpar busca"
                 style={({ pressed }) => pressed && styles.pressed}
               >
-                <MaterialIcons name="close" size={22} color={Brand.muted} />
+                <MaterialIcons name="close" size={22} color={theme.textMuted} />
               </Pressable>
             ) : null}
           </View>
@@ -204,7 +209,7 @@ function SearchContent({ initialQuery }: SearchContentProps) {
             ]}
           >
             <Text style={styles.sortLabel}>{SORT_LABELS[sort]}</Text>
-            <MaterialIcons name="swap-vert" size={16} color={Brand.red} />
+            <MaterialIcons name="swap-vert" size={16} color={theme.accent} />
           </Pressable>
         </View>
 
@@ -222,7 +227,7 @@ function SearchContent({ initialQuery }: SearchContentProps) {
         ) : (
           <View style={styles.emptyBlock}>
             <View style={styles.emptyIcon}>
-              <MaterialIcons name="search-off" size={32} color={Brand.paper} />
+              <MaterialIcons name="search-off" size={32} color={theme.onAccent} />
             </View>
             <Text style={styles.emptyTitle}>Nenhum filme encontrado</Text>
             <Text style={styles.emptyDescription}>
@@ -267,6 +272,8 @@ function SortSheet({
   onClose,
   onSelect,
 }: SortSheetProps) {
+  const styles = useThemedStyles(createStyles);
+
   return (
     <Modal
       visible={visible}
@@ -357,241 +364,247 @@ function sortMovies(movies: readonly Movie[], sort: SortKey): Movie[] {
   }
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Brand.paper,
-  },
-  scroll: {
-    paddingBottom: Platform.OS === "web" ? 96 : 40,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  title: {
-    ...TypeScale.screenTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  filterButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Brand.paper,
-  },
-  filterButtonActive: {
-    backgroundColor: Brand.ink,
-  },
-  searchShadow: {
-    marginHorizontal: 20,
-    marginTop: 18,
-  },
-  searchField: {
-    borderRadius: 6,
-    borderWidth: 3,
-    borderColor: Brand.red,
-    backgroundColor: Brand.paper,
-  },
-  searchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 0,
-    fontFamily: FontFamily.bold,
-    fontSize: 16,
-    lineHeight: 22,
-    color: Brand.ink,
-    outlineWidth: 0,
-  },
-  chipsRow: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    gap: 8,
-  },
-  chip: {
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Brand.line,
-    backgroundColor: Brand.paper,
-  },
-  chipActive: {
-    backgroundColor: Brand.red,
-    borderColor: Brand.black,
-  },
-  chipLabel: {
-    ...TypeScale.caption,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  chipLabelActive: {
-    color: Brand.paper,
-  },
-  resultsHeader: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingHorizontal: 20,
-    marginTop: 26,
-    marginBottom: 16,
-  },
-  resultsTitles: {
-    flex: 1,
-    gap: 2,
-  },
-  resultsTitle: {
-    ...TypeScale.resultsTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  resultsSubtitle: {
-    ...TypeScale.subtitle,
-    color: Brand.muted,
-  },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    paddingBottom: 2,
-  },
-  sortLabel: {
-    ...TypeScale.caption,
-    fontWeight: "900",
-    color: Brand.red,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    rowGap: 24,
-  },
-  emptyBlock: {
-    alignItems: "center",
-    paddingHorizontal: 40,
-    paddingVertical: 32,
-    gap: 10,
-  },
-  emptyIcon: {
-    width: 68,
-    height: 68,
-    borderRadius: 18,
-    backgroundColor: Brand.red,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  emptyTitle: {
-    ...TypeScale.emptyTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-    textAlign: "center",
-  },
-  emptyDescription: {
-    ...TypeScale.body,
-    color: Brand.muted,
-    textAlign: "center",
-  },
-  emptyButtonWrapper: {
-    marginTop: 8,
-  },
-  emptyButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 8,
-  },
-  emptyButtonPress: {
-    paddingHorizontal: 26,
-    paddingVertical: 15,
-  },
-  emptyButtonLabel: {
-    ...TypeScale.button,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    color: Brand.paper,
-  },
-  sheetRoot: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  sheetBackdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(17, 17, 20, 0.45)",
-  },
-  sheet: {
-    backgroundColor: Brand.paper,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: 2,
-    borderColor: Brand.black,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  sheetHandle: {
-    alignSelf: "center",
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Brand.line,
-    marginBottom: 10,
-  },
-  sheetTitle: {
-    ...TypeScale.modalTitle,
-    fontWeight: "900",
-    color: Brand.ink,
-    marginBottom: 8,
-  },
-  sheetOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Brand.line,
-  },
-  sheetOptionLabel: {
-    ...TypeScale.bodyLarge,
-    fontWeight: "700",
-    color: Brand.ink,
-  },
-  sheetOptionLabelActive: {
-    color: Brand.red,
-    fontWeight: "900",
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: Brand.black,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  radioActive: {
-    borderColor: Brand.red,
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Brand.red,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    scroll: {
+      paddingBottom: Platform.OS === "web" ? 96 : 40,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+    },
+    title: {
+      ...TypeScale.screenTitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    themeToggle: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+    },
+    filterButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.surface,
+    },
+    filterButtonActive: {
+      backgroundColor: theme.text,
+    },
+    searchShadow: {
+      marginHorizontal: 20,
+      marginTop: 18,
+    },
+    searchField: {
+      borderRadius: 6,
+      borderWidth: 3,
+      borderColor: theme.accent,
+      backgroundColor: theme.surface,
+    },
+    searchRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 0,
+      fontFamily: FontFamily.bold,
+      fontSize: 16,
+      lineHeight: 22,
+      color: theme.text,
+      outlineWidth: 0,
+    },
+    chipsRow: {
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      gap: 8,
+    },
+    chip: {
+      paddingHorizontal: 11,
+      paddingVertical: 7,
+      borderRadius: 6,
+      borderWidth: 2,
+      borderColor: theme.borderSubtle,
+      backgroundColor: theme.surface,
+    },
+    chipActive: {
+      backgroundColor: theme.accent,
+      borderColor: theme.border,
+    },
+    chipLabel: {
+      ...TypeScale.caption,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    chipLabelActive: {
+      color: theme.onAccent,
+    },
+    resultsHeader: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      gap: 12,
+      paddingHorizontal: 20,
+      marginTop: 26,
+      marginBottom: 16,
+    },
+    resultsTitles: {
+      flex: 1,
+      gap: 2,
+    },
+    resultsTitle: {
+      ...TypeScale.resultsTitle,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    resultsSubtitle: {
+      ...TypeScale.subtitle,
+      color: theme.textMuted,
+    },
+    sortButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 2,
+      paddingBottom: 2,
+    },
+    sortLabel: {
+      ...TypeScale.caption,
+      fontWeight: "900",
+      color: theme.accent,
+    },
+    grid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      paddingHorizontal: 20,
+      rowGap: 24,
+    },
+    emptyBlock: {
+      alignItems: "center",
+      paddingHorizontal: 40,
+      paddingVertical: 32,
+      gap: 10,
+    },
+    emptyIcon: {
+      width: 68,
+      height: 68,
+      borderRadius: 18,
+      backgroundColor: theme.accent,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+    },
+    emptyTitle: {
+      ...TypeScale.emptyTitle,
+      fontWeight: "900",
+      color: theme.text,
+      textAlign: "center",
+    },
+    emptyDescription: {
+      ...TypeScale.body,
+      color: theme.textMuted,
+      textAlign: "center",
+    },
+    emptyButtonWrapper: {
+      marginTop: 8,
+    },
+    emptyButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+    },
+    emptyButtonPress: {
+      paddingHorizontal: 26,
+      paddingVertical: 15,
+    },
+    emptyButtonLabel: {
+      ...TypeScale.button,
+      fontWeight: "900",
+      letterSpacing: 1.5,
+      color: theme.onAccent,
+    },
+    sheetRoot: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    sheetBackdrop: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: theme.backdrop,
+    },
+    sheet: {
+      backgroundColor: theme.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      borderTopWidth: 2,
+      borderColor: theme.border,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+    },
+    sheetHandle: {
+      alignSelf: "center",
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: theme.borderSubtle,
+      marginBottom: 10,
+    },
+    sheetTitle: {
+      ...TypeScale.modalTitle,
+      fontWeight: "900",
+      color: theme.text,
+      marginBottom: 8,
+    },
+    sheetOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderSubtle,
+    },
+    sheetOptionLabel: {
+      ...TypeScale.bodyLarge,
+      fontWeight: "700",
+      color: theme.text,
+    },
+    sheetOptionLabelActive: {
+      color: theme.accent,
+      fontWeight: "900",
+    },
+    radio: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: theme.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    radioActive: {
+      borderColor: theme.accent,
+    },
+    radioDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: theme.accent,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

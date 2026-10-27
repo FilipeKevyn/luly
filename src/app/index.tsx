@@ -1,31 +1,38 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { router } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HardShadow } from "@/components/hard-shadow";
-import { Text } from "@/components/text";
-import { Brand } from "@/constants/theme";
-import { TypeScale } from "@/constants/typography";
-import { getFeaturedMovie } from "@/data/movies";
-import { showNotice } from "@/utils/feedback";
+import { HardShadow } from '@/components/hard-shadow';
+import { Text } from '@/components/text';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { useTheme, useThemedStyles } from '@/contexts/theme-context';
+import { Brand, type ThemePalette } from '@/constants/theme';
+import { TypeScale } from '@/constants/typography';
+import { getFeaturedMovie } from '@/data/movies';
+import { showNotice } from '@/utils/feedback';
 
 export default function EntradaScreen() {
+  const theme = useTheme();
+  const styles = useThemedStyles(createStyles);
   const featured = getFeaturedMovie();
 
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
-      <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.brandRow}>
-            <MaterialIcons name="star" size={28} color={Brand.paper} />
-            <Text style={styles.brand}>luly</Text>
+          <View style={styles.topRow}>
+            <View style={styles.brandRow}>
+              <MaterialIcons name="star" size={28} color={theme.onAccent} />
+              <Text style={styles.brand}>luly</Text>
+            </View>
+            <ThemeToggle variant="onBrand" />
           </View>
 
           <Text style={styles.kicker}>DÊ O PLAY, COMPANHEIRO</Text>
@@ -70,7 +77,7 @@ export default function EntradaScreen() {
                   pressed && styles.pressed,
                 ]}
               >
-                <MaterialIcons name="star" size={18} color={Brand.paper} />
+                <MaterialIcons name="star" size={18} color={theme.onAccent} />
                 <Text style={styles.primaryLabel}>ENTRAR NA LULY</Text>
               </Pressable>
             </HardShadow>
@@ -103,143 +110,149 @@ export default function EntradaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: Brand.red,
-  },
-  safe: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: 22,
-    paddingTop: 18,
-  },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  brand: {
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: "900",
-    color: Brand.paper,
-    letterSpacing: 0.5,
-  },
-  kicker: {
-    marginTop: 30,
-    ...TypeScale.caption,
-    fontWeight: "900",
-    letterSpacing: 2,
-    color: Brand.yellow,
-  },
-  title: {
-    marginTop: 10,
-    ...TypeScale.display,
-    fontWeight: "900",
-    color: Brand.paper,
-  },
-  subtitle: {
-    marginTop: 12,
-    ...TypeScale.bodyLarge,
-    color: "rgba(255, 255, 255, 0.9)",
-  },
-  promoWrapper: {
-    marginTop: 26,
-    marginBottom: 20,
-  },
-  promoFrame: {
-    borderRadius: 14,
-    backgroundColor: Brand.black,
-  },
-  promoImage: {
-    width: "100%",
-    aspectRatio: 4 / 3,
-    borderRadius: 14,
-  },
-  promoBadge: {
-    position: "absolute",
-    right: 14,
-    bottom: 14,
-    backgroundColor: Brand.yellow,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 3,
-    borderWidth: 2,
-    borderColor: Brand.black,
-  },
-  promoBadgeText: {
-    ...TypeScale.micro,
-    fontWeight: "900",
-    letterSpacing: 1,
-    color: Brand.black,
-  },
-  card: {
-    flexGrow: 1,
-    backgroundColor: Brand.paper,
-    borderTopLeftRadius: 26,
-    borderTopRightRadius: 26,
-    marginHorizontal: -22,
-    paddingHorizontal: 26,
-    paddingTop: 28,
-    paddingBottom: 40,
-    gap: 12,
-  },
-  cardTitle: {
-    ...TypeScale.cardHeadline,
-    fontWeight: "900",
-    color: Brand.ink,
-  },
-  cardSubtitle: {
-    ...TypeScale.bodyLarge,
-    color: Brand.muted,
-    marginBottom: 8,
-  },
-  buttonWrapper: {
-    marginBottom: 4,
-  },
-  primaryButton: {
-    backgroundColor: Brand.red,
-    borderRadius: 8,
-  },
-  primaryPress: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    paddingVertical: 18,
-  },
-  primaryLabel: {
-    ...TypeScale.buttonLarge,
-    color: Brand.paper,
-    fontWeight: "900",
-    letterSpacing: 1.5,
-  },
-  secondaryButton: {
-    backgroundColor: Brand.paper,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Brand.black,
-  },
-  secondaryPress: {
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  secondaryLabel: {
-    ...TypeScale.buttonLarge,
-    color: Brand.ink,
-    fontWeight: "900",
-    letterSpacing: 0.5,
-  },
-  terms: {
-    marginTop: 10,
-    ...TypeScale.label,
-    color: Brand.muted,
-    textAlign: "center",
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-});
+const createStyles = (theme: ThemePalette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: Brand.red,
+    },
+    safe: {
+      flex: 1,
+    },
+    scroll: {
+      flexGrow: 1,
+      paddingHorizontal: 22,
+      paddingTop: 18,
+    },
+    topRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    brandRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    brand: {
+      fontSize: 30,
+      lineHeight: 36,
+      fontWeight: "900",
+      color: theme.onAccent,
+      letterSpacing: 0.5,
+    },
+    kicker: {
+      marginTop: 30,
+      ...TypeScale.caption,
+      fontWeight: "900",
+      letterSpacing: 2,
+      color: theme.highlight,
+    },
+    title: {
+      marginTop: 10,
+      ...TypeScale.display,
+      fontWeight: "900",
+      color: theme.onAccent,
+    },
+    subtitle: {
+      marginTop: 12,
+      ...TypeScale.bodyLarge,
+      color: "rgba(255, 255, 255, 0.9)",
+    },
+    promoWrapper: {
+      marginTop: 26,
+      marginBottom: 20,
+    },
+    promoFrame: {
+      borderRadius: 14,
+      backgroundColor: theme.mediaBackground,
+    },
+    promoImage: {
+      width: "100%",
+      aspectRatio: 4 / 3,
+      borderRadius: 14,
+    },
+    promoBadge: {
+      position: "absolute",
+      right: 14,
+      bottom: 14,
+      backgroundColor: theme.highlight,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 3,
+      borderWidth: 2,
+      borderColor: Brand.black,
+    },
+    promoBadgeText: {
+      ...TypeScale.micro,
+      fontWeight: "900",
+      letterSpacing: 1,
+      color: Brand.black,
+    },
+    card: {
+      flexGrow: 1,
+      backgroundColor: theme.surface,
+      borderTopLeftRadius: 26,
+      borderTopRightRadius: 26,
+      marginHorizontal: -22,
+      paddingHorizontal: 26,
+      paddingTop: 28,
+      paddingBottom: 40,
+      gap: 12,
+    },
+    cardTitle: {
+      ...TypeScale.cardHeadline,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    cardSubtitle: {
+      ...TypeScale.bodyLarge,
+      color: theme.textMuted,
+      marginBottom: 8,
+    },
+    buttonWrapper: {
+      marginBottom: 4,
+    },
+    primaryButton: {
+      backgroundColor: theme.accent,
+      borderRadius: 8,
+    },
+    primaryPress: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      paddingVertical: 18,
+    },
+    primaryLabel: {
+      ...TypeScale.buttonLarge,
+      color: theme.onAccent,
+      fontWeight: "900",
+      letterSpacing: 1.5,
+    },
+    secondaryButton: {
+      backgroundColor: theme.surface,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderColor: theme.border,
+    },
+    secondaryPress: {
+      alignItems: "center",
+      paddingVertical: 16,
+    },
+    secondaryLabel: {
+      ...TypeScale.buttonLarge,
+      color: theme.text,
+      fontWeight: "900",
+      letterSpacing: 0.5,
+    },
+    terms: {
+      marginTop: 10,
+      ...TypeScale.label,
+      color: theme.textMuted,
+      textAlign: "center",
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+  });

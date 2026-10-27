@@ -10,7 +10,7 @@ import {
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/text';
-import { Brand } from '@/constants/theme';
+import { useTheme } from '@/contexts/theme-context';
 import { TypeScale } from '@/constants/typography';
 
 type TabButtonProps = TabTriggerSlotProps & {
@@ -39,18 +39,38 @@ export default function AppTabs() {
 }
 
 function TabButton({ icon, isFocused, children, ...props }: TabButtonProps) {
+  const theme = useTheme();
+
   return (
     <Pressable {...props} style={styles.tabButton}>
-      <MaterialIcons name={icon} size={20} color={isFocused ? Brand.red : Brand.muted} />
-      <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>{children}</Text>
+      <MaterialIcons
+        name={icon}
+        size={20}
+        color={isFocused ? theme.accent : theme.textMuted}
+      />
+      <Text
+        style={[
+          styles.tabLabel,
+          { color: isFocused ? theme.accent : theme.textMuted },
+        ]}>
+        {children}
+      </Text>
     </Pressable>
   );
 }
 
 function CustomTabList(props: TabListProps) {
+  const theme = useTheme();
+
   return (
     <View {...props} style={styles.tabListContainer}>
-      <View style={styles.innerContainer}>{props.children}</View>
+      <View
+        style={[
+          styles.innerContainer,
+          { backgroundColor: theme.tabBar, borderColor: theme.border },
+        ]}>
+        {props.children}
+      </View>
     </View>
   );
 }
@@ -74,9 +94,7 @@ const styles = StyleSheet.create({
     gap: 32,
     flexGrow: 1,
     paddingVertical: 12,
-    backgroundColor: Brand.paper,
     borderTopWidth: 2,
-    borderColor: Brand.black,
   },
   tabButton: {
     alignItems: 'center',
@@ -86,9 +104,5 @@ const styles = StyleSheet.create({
   tabLabel: {
     ...TypeScale.label,
     fontWeight: '800',
-    color: Brand.muted,
-  },
-  tabLabelActive: {
-    color: Brand.red,
   },
 });

@@ -1,14 +1,8 @@
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * Theme hook re-exported from the global provider.
+ *
+ * Screens and components should prefer reading colors through this hook (or
+ * `useThemedStyles`) so light/dark switching stays reactive.
  */
 
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
-
-  return Colors[theme];
-}
+export { useTheme } from '@/contexts/theme-context';

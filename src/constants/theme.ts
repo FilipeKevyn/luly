@@ -1,45 +1,130 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Design tokens used across the app.
+ *
+ * `Brand` keeps the colors that never change between themes (accent red,
+ * highlight yellow, media black). Everything else must come from `useTheme()`
+ * so the UI can switch between the light and dark palettes at runtime.
  */
 
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
-} as const;
-
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
 export const Brand = {
   red: '#E81E3A',
   redPressed: '#C9162F',
   yellow: '#FFD60A',
   black: '#000000',
-  ink: '#111114',
-  muted: '#6E6E73',
-  paper: '#FFFFFF',
-  canvas: '#F2F2F2',
-  line: '#E4E4E7',
-  night: '#0A0A0C',
-  nightSoft: '#1B1B1F',
-  nightLine: '#2C2C31',
+  white: '#FFFFFF',
+  success: '#A9F5C7',
 } as const;
+
+export type ThemeScheme = 'light' | 'dark';
+
+export interface ThemePalette {
+  /** Primary text color. */
+  text: string;
+  /** Secondary text color. */
+  textMuted: string;
+  /** Long-form body text (slightly softer than the primary text). */
+  textBody: string;
+  /** Legacy alias kept for the starter themed components. */
+  textSecondary: string;
+  /** Screen background. */
+  background: string;
+  /** Slightly different screen background (e.g. details/empty states). */
+  backgroundMuted: string;
+  /** Legacy alias kept for the starter themed components. */
+  backgroundElement: string;
+  /** Legacy alias kept for the starter themed components. */
+  backgroundSelected: string;
+  /** Cards, sheets, inputs and raised surfaces. */
+  surface: string;
+  /** Secondary surfaces (disabled chips, image placeholders). */
+  surfaceMuted: string;
+  /** Thick, high-contrast borders. */
+  border: string;
+  /** Thin dividers and subtle outlines. */
+  borderSubtle: string;
+  /** Hard-shadow color. */
+  shadow: string;
+  accent: string;
+  accentPressed: string;
+  highlight: string;
+  /** Content placed on top of the accent color. */
+  onAccent: string;
+  /** Video/poster backdrop. */
+  mediaBackground: string;
+  /** Content placed on top of images or video. */
+  onMedia: string;
+  /** Secondary content placed on top of images or video. */
+  onMediaMuted: string;
+  /** Modal/sheet backdrop. */
+  backdrop: string;
+  /** Bottom tab bar background. */
+  tabBar: string;
+  /** Positive badge background. */
+  success: string;
+}
+
+const light: ThemePalette = {
+  text: '#111114',
+  textMuted: '#6E6E73',
+  textBody: '#3A3A3D',
+  textSecondary: '#60646C',
+  background: '#FFFFFF',
+  backgroundMuted: '#F2F2F2',
+  backgroundElement: '#F0F0F3',
+  backgroundSelected: '#E0E1E6',
+  surface: '#FFFFFF',
+  surfaceMuted: '#F2F2F2',
+  border: '#000000',
+  borderSubtle: '#E4E4E7',
+  shadow: '#000000',
+  accent: Brand.red,
+  accentPressed: Brand.redPressed,
+  highlight: Brand.yellow,
+  onAccent: Brand.white,
+  mediaBackground: Brand.black,
+  onMedia: Brand.white,
+  onMediaMuted: 'rgba(255, 255, 255, 0.7)',
+  backdrop: 'rgba(0, 0, 0, 0.55)',
+  tabBar: '#FFFFFF',
+  success: Brand.success,
+};
+
+const dark: ThemePalette = {
+  text: '#F5F5F7',
+  textMuted: '#A1A1AA',
+  textBody: '#D4D4D8',
+  textSecondary: '#B0B4BA',
+  background: '#0A0A0C',
+  backgroundMuted: '#0A0A0C',
+  backgroundElement: '#212225',
+  backgroundSelected: '#2E3135',
+  surface: '#1B1B1F',
+  surfaceMuted: '#26262B',
+  border: '#3F3F46',
+  borderSubtle: '#2C2C31',
+  shadow: '#000000',
+  accent: Brand.red,
+  accentPressed: Brand.redPressed,
+  highlight: Brand.yellow,
+  onAccent: Brand.white,
+  mediaBackground: Brand.black,
+  onMedia: Brand.white,
+  onMediaMuted: 'rgba(255, 255, 255, 0.72)',
+  backdrop: 'rgba(0, 0, 0, 0.65)',
+  tabBar: '#121216',
+  success: Brand.success,
+};
+
+export const Palettes = { light, dark } as const satisfies Record<ThemeScheme, ThemePalette>;
+
+/** Backwards-compatible alias used by the starter themed components. */
+export const Colors = Palettes;
+
+export type ThemeColor = keyof ThemePalette;
 
 export const Fonts = Platform.select({
   ios: {
