@@ -41,7 +41,6 @@
 | **Linguagem**    | TypeScript 6                                              |
 | **Navegação**    | Expo Router com rotas tipadas e `NativeTabs`              |
 | **UI**           | React Native `StyleSheet` · `expo-image` · Material Icons |
-| **Tipografia**   | Nunito (`400`–`900`) via `@expo-google-fonts/nunito`      |
 | **Persistência** | `expo-sqlite` (API assíncrona) + migrations versionadas   |
 | **Playback**     | `expo-video`                                              |
 | **Validação**    | Zod                                                       |
