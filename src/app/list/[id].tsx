@@ -20,7 +20,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme, useThemedStyles } from '@/contexts/theme-context';
 import type { ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
-import { getMovieById, type Movie } from '@/data/movies';
+import { type Movie } from '@/data/movies';
 import {
   deleteLista,
   getListaPorId,
@@ -74,10 +74,7 @@ function ListaContent({ listaId }: { listaId: number }) {
         setState({ status: 'missing' });
         return;
       }
-      const ids = await listFilmesDaLista(listaId);
-      const movies = ids
-        .map((id) => getMovieById(id))
-        .filter((movie): movie is Movie => movie !== null);
+      const movies = await listFilmesDaLista(listaId);
       setState({ status: 'ready', lista, movies });
     } catch {
       showNotice('Não foi possível carregar a lista.');

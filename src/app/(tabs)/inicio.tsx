@@ -16,15 +16,20 @@ import { AddToListSheet } from '@/components/add-to-list-sheet';
 import { ThemedStatusBar } from '@/components/app-status-bar';
 import { HardShadow } from '@/components/hard-shadow';
 import { MovieCard } from '@/components/movie-card';
+import { ScreenMessage } from '@/components/screen-message';
 import { Text } from '@/components/text';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme, useThemedStyles } from '@/contexts/theme-context';
 import { Brand, type ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
-import { getFeaturedMovies, getHomeSections, type Movie } from '@/data/movies';
+import { env } from '@/config';
+import { useAuth } from '@/contexts/auth-context';
+import { useMovies } from '@/hooks/use-movies';
+import type { Movie } from '@/data/movies';
 import { showNotice } from '@/utils/feedback';
 import { formatRating } from '@/utils/format';
 import { openMovie, openPlayer } from '@/utils/navigation';
+import { RefreshControl } from 'react-native';
 
 const AVATAR_URI = 'https://picsum.photos/seed/luly-user/200/200';
 const HERO_AUTO_ADVANCE_MS = 5000;
@@ -33,9 +38,15 @@ export default function InicioScreen() {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
-  const featuredMovies = getFeaturedMovies();
+  const { token } = useAuth();
+  const { movies, loading, error, refresh, refreshing } = useMovies(token);
+  const featuredMovies = movies.filter((m) => m.featured);
   const slideCount = featuredMovies.length;
-  const sections = getHomeSections();
+  const sections = [
+    { genre: 'Drama', movies: movies.filter((m) => m.genres.includes('Drama')).slice(0, 6) },
+    { genre: 'Ação', movies: movies.filter((m) => m.genres.includes('Ação')).slice(0, 6) },
+    { genre: 'Ficção científica', movies: movies.filter((m) => m.genres.includes('Ficção científica')).slice(0, 6) },
+  ];
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [heroWidth, setHeroWidth] = useState(0);
@@ -110,12 +121,44 @@ export default function InicioScreen() {
     }, [activeIndex, goToSlide, heroWidth, isDragging, sheetVisible, slideCount])
   );
 
+  if (loading && movies.length === 0) {
+    return (
+      <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ThemedStatusBar />
+        <Text style={styles.sectionTitle}>Carregando catálogo...</Text>
+      </View>
+    );
+  }
+
+  if (error && movies.length === 0) {
+    return (
+      <>
+        <ThemedStatusBar />
+        <ScreenMessage
+          icon="wifi-off"
+          title="Erro ao carregar"
+          description={`${error}\n\nAPI: ${env.EXPO_PUBLIC_API_URL}`}
+          actionLabel="TENTAR NOVAMENTE"
+          onAction={refresh}
+        />
+      </>
+    );
+  }
+
   return (
     <View style={styles.screen}>
       <ThemedStatusBar />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            colors={[theme.accent]}
+            tintColor={theme.accent}
+          />
+        }>
         <View style={styles.header}>
           <View style={styles.brandRow}>
             <MaterialIcons name="star" size={24} color={theme.text} />

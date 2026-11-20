@@ -93,7 +93,7 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
         await removeFilmeDaLista(lista.id, movie.id);
         setSelectedIds((current) => current.filter((id) => id !== lista.id));
       } else {
-        await addFilmeALista(lista.id, movie.id);
+        await addFilmeALista(lista.id, movie);
         setSelectedIds((current) => [...current, lista.id]);
         showNotice(`Adicionado a ${lista.nome}`);
       }
@@ -117,7 +117,7 @@ export function AddToListSheet({ movie, visible, onClose, onChanged }: AddToList
     setBusy(true);
     try {
       const lista = await createLista(USUARIO_DEMO_ID, nome);
-      await addFilmeALista(lista.id, movie.id);
+      await addFilmeALista(lista.id, movie);
       setLists((current) => [...current, { ...lista, total: 1 }]);
       setSelectedIds((current) => [...current, lista.id]);
       setNewName('');

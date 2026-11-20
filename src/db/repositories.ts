@@ -1,4 +1,4 @@
-import { getMovieById } from '@/data/movies';
+import { MovieSchema, type Movie } from '@/data/movies';
 
 import { getDatabase, USUARIO_DEMO_ID } from './client';
 
@@ -16,27 +16,43 @@ export type ListaComContagem = Lista & {
 };
 
 export type Visualizacao = {
-  filme_id: number;
+  filme: Movie;
   iniciado_em: string;
 };
 
-async function ensureFilmeRow(filmeId: number): Promise<void> {
-  const movie = getMovieById(filmeId);
-  if (!movie) {
-    throw new Error('Filme não encontrado no catálogo.');
+function parseMovie(json: string): Movie | null {
+  try {
+    const result = MovieSchema.safeParse(JSON.parse(json));
+    return result.success ? result.data : null;
+  } catch {
+    return null;
   }
+}
+
+function parseMovieRows(rows: { dados_json: string }[]): Movie[] {
+  return rows
+    .map((row) => parseMovie(row.dados_json))
+    .filter((movie): movie is Movie => movie !== null);
+}
+
+async function salvarFilme(movie: Movie): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
-    `INSERT OR IGNORE INTO filmes (id, nome, ano_publicacao, duracao_seg, avaliacao_media, url_video, url_thumbnail)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO filmes (id, dados_json, atualizado_em)
+     VALUES (?, ?, datetime('now'))
+     ON CONFLICT(id) DO UPDATE SET dados_json = excluded.dados_json, atualizado_em = datetime('now')`,
     movie.id,
-    movie.title,
-    movie.year,
-    movie.durationMin * 60,
-    movie.rating,
-    movie.videoUrl,
-    movie.poster
+    JSON.stringify(movie)
   );
+}
+
+export async function getFilmeById(filmeId: string): Promise<Movie | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<{ dados_json: string }>(
+    'SELECT dados_json FROM filmes WHERE id = ?',
+    filmeId
+  );
+  return row ? parseMovie(row.dados_json) : null;
 }
 
 export async function listListasComContagem(usuarioId: number): Promise<ListaComContagem[]> {
@@ -83,41 +99,50 @@ export async function deleteLista(listaId: number): Promise<void> {
   await db.runAsync('DELETE FROM listas WHERE id = ?', listaId);
 }
 
-export async function addFilmeALista(listaId: number, filmeId: number): Promise<void> {
-  await ensureFilmeRow(filmeId);
+export async function addFilmeALista(listaId: number, movie: Movie): Promise<void> {
+  await salvarFilme(movie);
   const db = await getDatabase();
-  await db.runAsync('INSERT OR IGNORE INTO lista_filmes (lista_id, filme_id) VALUES (?, ?)', listaId, filmeId);
+  await db.runAsync(
+    'INSERT OR IGNORE INTO lista_filmes (lista_id, filme_id) VALUES (?, ?)',
+    listaId,
+    movie.id
+  );
 }
 
-export async function removeFilmeDaLista(listaId: number, filmeId: number): Promise<void> {
+export async function removeFilmeDaLista(listaId: number, filmeId: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync('DELETE FROM lista_filmes WHERE lista_id = ? AND filme_id = ?', listaId, filmeId);
 }
 
-export async function listFilmesDaLista(listaId: number): Promise<number[]> {
+export async function listFilmesDaLista(listaId: number): Promise<Movie[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<{ filme_id: number }>(
-    'SELECT filme_id FROM lista_filmes WHERE lista_id = ? ORDER BY added_at DESC, filme_id ASC',
+  const rows = await db.getAllAsync<{ dados_json: string }>(
+    `SELECT f.dados_json
+     FROM lista_filmes lf
+     JOIN filmes f ON f.id = lf.filme_id
+     WHERE lf.lista_id = ?
+     ORDER BY lf.added_at DESC, lf.filme_id ASC`,
     listaId
   );
-  return rows.map((row) => row.filme_id);
+  return parseMovieRows(rows);
 }
 
-export async function listFilmesSalvos(usuarioId: number): Promise<number[]> {
+export async function listFilmesSalvos(usuarioId: number): Promise<Movie[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<{ filme_id: number }>(
-    `SELECT lf.filme_id AS filme_id, MAX(lf.added_at) AS ultima
+  const rows = await db.getAllAsync<{ dados_json: string }>(
+    `SELECT f.dados_json, MAX(lf.added_at) AS ultima
      FROM lista_filmes lf
      JOIN listas l ON l.id = lf.lista_id
+     JOIN filmes f ON f.id = lf.filme_id
      WHERE l.usuario_id = ?
      GROUP BY lf.filme_id
      ORDER BY ultima DESC, lf.filme_id ASC`,
     usuarioId
   );
-  return rows.map((row) => row.filme_id);
+  return parseMovieRows(rows);
 }
 
-export async function getListasComFilme(usuarioId: number, filmeId: number): Promise<Lista[]> {
+export async function getListasComFilme(usuarioId: number, filmeId: string): Promise<Lista[]> {
   const db = await getDatabase();
   return db.getAllAsync<Lista>(
     `SELECT l.id, l.usuario_id, l.nome, l.created_at
@@ -130,7 +155,7 @@ export async function getListasComFilme(usuarioId: number, filmeId: number): Pro
   );
 }
 
-export async function isFilmeEmAlgumaLista(usuarioId: number, filmeId: number): Promise<boolean> {
+export async function isFilmeEmAlgumaLista(usuarioId: number, filmeId: string): Promise<boolean> {
   const db = await getDatabase();
   const row = await db.getFirstAsync<{ existe: number }>(
     `SELECT EXISTS(
@@ -145,55 +170,60 @@ export async function isFilmeEmAlgumaLista(usuarioId: number, filmeId: number): 
   return (row?.existe ?? 0) === 1;
 }
 
-export async function marcarIniciado(usuarioId: number, filmeId: number): Promise<void> {
-  await ensureFilmeRow(filmeId);
+export async function marcarIniciado(usuarioId: number, movie: Movie): Promise<void> {
+  await salvarFilme(movie);
   const db = await getDatabase();
   await db.runAsync(
     'INSERT OR IGNORE INTO visualizacoes (usuario_id, filme_id) VALUES (?, ?)',
     usuarioId,
-    filmeId
+    movie.id
   );
 }
 
-export async function marcarFinalizado(usuarioId: number, filmeId: number): Promise<void> {
-  await ensureFilmeRow(filmeId);
+export async function marcarFinalizado(usuarioId: number, movie: Movie): Promise<void> {
+  await salvarFilme(movie);
   const db = await getDatabase();
   await db.runAsync(
     'INSERT OR IGNORE INTO visualizacoes (usuario_id, filme_id) VALUES (?, ?)',
     usuarioId,
-    filmeId
+    movie.id
   );
   await db.runAsync(
     'UPDATE visualizacoes SET finalizado = 1 WHERE usuario_id = ? AND filme_id = ?',
     usuarioId,
-    filmeId
+    movie.id
   );
 }
 
 export async function getContinueAssistindo(usuarioId: number): Promise<Visualizacao[]> {
   const db = await getDatabase();
-  return db.getAllAsync<Visualizacao>(
-    `SELECT filme_id, iniciado_em
-     FROM visualizacoes
-     WHERE usuario_id = ? AND finalizado = 0
-     ORDER BY iniciado_em DESC, rowid DESC`,
+  const rows = await db.getAllAsync<{ dados_json: string; iniciado_em: string }>(
+    `SELECT f.dados_json, v.iniciado_em
+     FROM visualizacoes v
+     JOIN filmes f ON f.id = v.filme_id
+     WHERE v.usuario_id = ? AND v.finalizado = 0
+     ORDER BY v.iniciado_em DESC, v.rowid DESC`,
     usuarioId
   );
+  return rows.flatMap((row) => {
+    const filme = parseMovie(row.dados_json);
+    return filme ? [{ filme, iniciado_em: row.iniciado_em }] : [];
+  });
 }
 
-export async function avaliarFilme(usuarioId: number, filmeId: number, nota: number): Promise<void> {
+export async function avaliarFilme(usuarioId: number, movie: Movie, nota: number): Promise<void> {
   const clamped = Math.min(10, Math.max(0, nota));
-  await ensureFilmeRow(filmeId);
+  await salvarFilme(movie);
   const db = await getDatabase();
   await db.runAsync(
     'INSERT OR IGNORE INTO visualizacoes (usuario_id, filme_id) VALUES (?, ?)',
     usuarioId,
-    filmeId
+    movie.id
   );
   await db.runAsync(
     'UPDATE visualizacoes SET nota_usuario = ? WHERE usuario_id = ? AND filme_id = ?',
     clamped,
     usuarioId,
-    filmeId
+    movie.id
   );
 }

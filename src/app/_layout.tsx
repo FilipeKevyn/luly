@@ -10,9 +10,12 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 
+import { AuthProvider } from '@/contexts/auth-context';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AppThemeProvider, useThemeController } from '@/contexts/theme-context';
+import { lockOrientation } from '@/utils/orientation';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,13 +30,20 @@ export default function RootLayout() {
     ...MaterialIcons.font,
   });
 
+  // Travar portrait globalmente
+  useEffect(() => {
+    lockOrientation('PORTRAIT_UP');
+  }, []);
+
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
   return (
     <AppThemeProvider>
-      <RootNavigator />
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
     </AppThemeProvider>
   );
 }

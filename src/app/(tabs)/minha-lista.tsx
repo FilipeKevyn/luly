@@ -15,7 +15,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme, useThemedStyles } from "@/contexts/theme-context";
 import type { ThemePalette } from "@/constants/theme";
 import { TypeScale } from "@/constants/typography";
-import { getMovieById, type Movie } from "@/data/movies";
+import { type Movie } from "@/data/movies";
 import {
   getContinueAssistindo,
   listFilmesDaLista,
@@ -42,29 +42,23 @@ export default function MinhaListaScreen() {
 
   const load = useCallback(async () => {
     try {
-      const [savedIds, views, allListas] = await Promise.all([
+      const [savedMovies, views, allListas] = await Promise.all([
         listFilmesSalvos(USUARIO_DEMO_ID),
         getContinueAssistindo(USUARIO_DEMO_ID),
         listListasComContagem(USUARIO_DEMO_ID),
       ]);
-      const movies = savedIds
-        .map((id) => getMovieById(id))
-        .filter((movie): movie is Movie => movie !== null);
-      const nextView = views.find(
-        (view) => getMovieById(view.filme_id) !== null,
-      );
       const listasComCovers = await Promise.all(
         allListas.map(async (lista): Promise<ListaView> => {
-          const ids = await listFilmesDaLista(lista.id);
-          const covers = ids
-            .map((filmeId) => getMovieById(filmeId)?.poster)
-            .filter((poster): poster is string => poster !== undefined)
+          const movies = await listFilmesDaLista(lista.id);
+          const covers = movies
+            .map((movie) => movie.poster)
+            .filter((poster): poster is string => poster.length > 0)
             .slice(0, 4);
           return { ...lista, covers };
         }),
       );
-      setSaved(movies);
-      setContinueWatching(nextView ? getMovieById(nextView.filme_id) : null);
+      setSaved(savedMovies);
+      setContinueWatching(views[0]?.filme ?? null);
       setListas(listasComCovers);
     } catch {
       showNotice("Não foi possível carregar suas listas.");

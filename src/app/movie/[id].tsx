@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -20,7 +20,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme, useThemedStyles } from "@/contexts/theme-context";
 import { Brand, type ThemePalette } from "@/constants/theme";
 import { TypeScale } from "@/constants/typography";
-import { getMovieById, type Movie } from "@/data/movies";
+import { useAuth } from "@/contexts/auth-context";
+import { fetchMovieById } from "@/services/api";
+import { toMovie } from "@/services/adapter";
+import type { Movie } from "@/data/movies";
 import { isFilmeEmAlgumaLista, USUARIO_DEMO_ID } from "@/db/repositories";
 import { showNotice } from "@/utils/feedback";
 import { formatDuration, formatRating } from "@/utils/format";
@@ -28,8 +31,55 @@ import { goBackOrHome, openPlayer } from "@/utils/navigation";
 
 export default function MovieDetailsScreen() {
   const params = useLocalSearchParams<{ id: string }>();
-  const id = Number(params.id);
-  const movie = Number.isFinite(id) ? getMovieById(id) : null;
+  const { token } = useAuth();
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const movieId = params.id;
+    if (!movieId) {
+      setMovie(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadMovie() {
+      try {
+        const item = await fetchMovieById(movieId, token);
+        if (!cancelled) {
+          setMovie(toMovie(item));
+        }
+      } catch {
+        if (!cancelled) {
+          setMovie(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadMovie();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id, token]);
+
+  if (loading) {
+    return (
+      <>
+        <ThemedStatusBar />
+        <ScreenMessage
+          icon="movie"
+          title="Carregando..."
+          description="Buscando detalhes do filme."
+          actionLabel=""
+          onAction={() => {}}
+        />
+      </>
+    );
+  }
 
   if (!movie) {
     return (

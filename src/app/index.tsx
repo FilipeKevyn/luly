@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -11,13 +12,75 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme, useThemedStyles } from '@/contexts/theme-context';
 import { Brand, type ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
-import { getFeaturedMovie } from '@/data/movies';
+import { fetchMovies } from '@/services/api';
+import { toMovie } from '@/services/adapter';
+import type { Movie } from '@/data/movies';
 import { showNotice } from '@/utils/feedback';
+
+// Fallback exibido enquanto a API não responde.
+const STATIC_FEATURED: Movie = {
+  id: '00000000-0000-4000-8000-000000000000',
+  title: 'Star Wars - Uma Nova Esperança',
+  tagline: 'A esperança pode ser forte o suficiente.',
+  genre: 'Ficção científica',
+  genres: ['Ficção científica', 'Ação', 'Aventura'],
+  year: 1977,
+  durationMin: 121,
+  rating: 8.6,
+  maturity: '12',
+  matchPercent: 95,
+  synopsis: 'Luke Skywalker, um jovem agricultor, se empolga ao saber que seu tio, que morreu, era um piloto da Força.',
+  director: 'George Lucas',
+  cast: [],
+  poster: 'https://picsum.photos/seed/star-wars/600/900',
+  hero: 'https://picsum.photos/seed/star-wars-wide/1200/675',
+  videoUrl: '',
+  isOriginal: true,
+  isNew: false,
+  featured: true,
+};
 
 export default function EntradaScreen() {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
-  const featured = getFeaturedMovie();
+  const [featured, setFeatured] = useState<Movie | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFeatured() {
+      try {
+        const result = await fetchMovies(1, 1);
+        const [item] = result.items;
+        if (!cancelled && item) {
+          setFeatured(toMovie(item));
+        }
+      } catch {
+        // Keep null; fallback UI shows static content
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadFeatured();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const hero = featured?.hero ?? STATIC_FEATURED.hero;
+
+  if (loading) {
+    return (
+      <View style={[styles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <StatusBar style="light" />
+        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+          <Text style={styles.cardTitle}>Carregando...</Text>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
@@ -48,7 +111,7 @@ export default function EntradaScreen() {
             style={styles.promoFrame}
           >
             <Image
-              source={{ uri: featured.hero }}
+              source={{ uri: hero }}
               style={styles.promoImage}
               contentFit="cover"
               transition={200}

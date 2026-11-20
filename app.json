@@ -3,7 +3,7 @@
     "name": "luly",
     "slug": "luly",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "backgroundColor": "#E81E3A",
     "icon": "./assets/images/icon.png",
     "scheme": "luly",
@@ -18,7 +18,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.luly"
     },
     "web": {
       "output": "static",
@@ -35,7 +36,8 @@
         }
       ],
       "expo-video",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-screen-orientation"
     ],
     "experiments": {
       "typedRoutes": true,

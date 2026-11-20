@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import {
   Modal,
   Platform,
@@ -20,7 +20,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme, useThemedStyles } from "@/contexts/theme-context";
 import type { ThemePalette } from "@/constants/theme";
 import { FontFamily, TypeScale } from "@/constants/typography";
-import { searchMovies, type Movie } from "@/data/movies";
+import { useAuth } from "@/contexts/auth-context";
+import { useMovies } from "@/hooks/use-movies";
+import type { Movie } from "@/data/movies";
 import { openMovie } from "@/utils/navigation";
 
 const SEARCH_PLACEHOLDER = "filmes para uma noite...";
@@ -65,22 +67,36 @@ interface SearchContentProps {
   initialQuery: string;
 }
 
+const FILTER_GENRES: Record<SearchFilterKey, string | undefined> = {
+  tudo: undefined,
+  drama: "Drama",
+  comedia: "Comédia",
+  ficcao: "Ficção científica",
+  brasil: undefined,
+};
+
 function SearchContent({ initialQuery }: SearchContentProps) {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
-  const [query, setQuery] = useState(initialQuery);
+  const { token } = useAuth();
   const [filter, setFilter] = useState<SearchFilterKey>("tudo");
+  const { movies, search } = useMovies(token, FILTER_GENRES[filter]);
+  const [query, setQuery] = useState(initialQuery);
   const [sort, setSort] = useState<SortKey>("avaliacao");
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      search(query);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query, search]);
+
   const results = useMemo(() => {
-    const matched = searchMovies(query).filter((movie) =>
-      matchesFilter(movie, filter),
-    );
-    return sortMovies(matched, sort);
-  }, [filter, query, sort]);
+    return sortMovies(movies, sort);
+  }, [movies, sort]);
 
   const resultsSubtitle =
     results.length === 1
@@ -324,26 +340,6 @@ function SortSheet({
       </View>
     </Modal>
   );
-}
-
-function matchesFilter(movie: Movie, filter: SearchFilterKey): boolean {
-  switch (filter) {
-    case "tudo":
-      return true;
-    case "brasil":
-      // O catálogo mock é inteiramente de produções brasileiras.
-      return true;
-    case "drama":
-      return movie.genres.includes("Drama");
-    case "comedia":
-      return movie.genres.includes("Comédia");
-    case "ficcao":
-      return movie.genres.includes("Ficção científica");
-    default: {
-      const exhaustive: never = filter;
-      throw new Error(`Filtro desconhecido: ${String(exhaustive)}`);
-    }
-  }
 }
 
 function sortMovies(movies: readonly Movie[], sort: SortKey): Movie[] {

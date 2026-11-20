@@ -1,10 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEvent, useEventListener } from 'expo';
-import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { VideoView, useVideoPlayer, type VideoPlayer } from 'expo-video';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,19 +14,71 @@ import { Text } from '@/components/text';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Brand, Palettes } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
-import { getMovieById, getNextMovie, type Movie } from '@/data/movies';
+import { useAuth } from '@/contexts/auth-context';
+import { fetchMovieById } from '@/services/api';
+import { toMovie } from '@/services/adapter';
+import type { Movie } from '@/data/movies';
 import { marcarFinalizado, marcarIniciado, USUARIO_DEMO_ID } from '@/db/repositories';
 import { showNotice } from '@/utils/feedback';
 import { formatClock, formatDuration, formatRemaining, formatWatched } from '@/utils/format';
 import { goBackOrHome } from '@/utils/navigation';
+import { lockOrientation, unlockOrientation } from '@/utils/orientation';
 
 const RATES = [1, 1.5, 2];
+const CONTROLS_HIDE_DELAY_MS = 3000;
 const PlayerColors = Palettes.dark;
 
 export default function PlayerScreen() {
   const params = useLocalSearchParams<{ id: string }>();
-  const id = Number(params.id);
-  const movie = Number.isFinite(id) ? getMovieById(id) : null;
+  const { token } = useAuth();
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const movieId = params.id;
+    if (!movieId) {
+      setMovie(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadMovie() {
+      try {
+        const item = await fetchMovieById(movieId, token);
+        if (!cancelled) {
+          setMovie(toMovie(item));
+        }
+      } catch {
+        if (!cancelled) {
+          setMovie(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadMovie();
+    return () => {
+      cancelled = true;
+    };
+  }, [params.id, token]);
+
+  if (loading) {
+    return (
+      <>
+        <ThemedStatusBar />
+        <ScreenMessage
+          icon="movie"
+          title="Carregando..."
+          description="Buscando vídeo para reprodução."
+          actionLabel=""
+          onAction={() => {}}
+        />
+      </>
+    );
+  }
 
   if (!movie) {
     return (
@@ -55,6 +106,9 @@ function PlayerContent({ movie }: { movie: Movie }) {
   const [duration, setDuration] = useState(0);
   const [rateIndex, setRateIndex] = useState(0);
   const [barWidth, setBarWidth] = useState(0);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const player = useVideoPlayer(movie.videoUrl, (instance) => {
     playerRef.current = instance;
@@ -65,8 +119,6 @@ function PlayerContent({ movie }: { movie: Movie }) {
   const { status } = useEvent(player, 'statusChange', { status: player.status });
   const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
 
-  const nextMovie = getNextMovie(movie.id);
-
   useEventListener(player, 'timeUpdate', ({ currentTime: time }) => {
     setCurrentTime(time);
   });
@@ -76,12 +128,59 @@ function PlayerContent({ movie }: { movie: Movie }) {
   });
 
   useEventListener(player, 'playToEnd', () => {
-    marcarFinalizado(USUARIO_DEMO_ID, movie.id).catch(() => {});
+    marcarFinalizado(USUARIO_DEMO_ID, movie).catch(() => {});
   });
 
+  // Restaurar orientação quando sair do fullscreen
   useEffect(() => {
-    marcarIniciado(USUARIO_DEMO_ID, movie.id).catch(() => {});
-  }, [movie.id]);
+    if (!fullscreen) return;
+    return () => {
+      unlockOrientation();
+    };
+  }, [fullscreen]);
+
+  // Trancar portrait no montar
+  useEffect(() => {
+    lockOrientation('PORTRAIT_UP');
+  }, []);
+
+  const clearHideTimer = useCallback(() => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleHide = useCallback(() => {
+    clearHideTimer();
+    hideTimerRef.current = setTimeout(() => {
+      hideTimerRef.current = null;
+      setControlsVisible(false);
+    }, CONTROLS_HIDE_DELAY_MS);
+  }, [clearHideTimer]);
+
+  const revealControls = useCallback(() => {
+    setControlsVisible(true);
+    if (playerRef.current?.playing) {
+      scheduleHide();
+    }
+  }, [scheduleHide]);
+
+  // Controles somem sozinhos enquanto o vídeo está rodando e ficam visíveis
+  // quando ele está pausado.
+  useEffect(() => {
+    if (isPlaying) {
+      scheduleHide();
+    } else {
+      clearHideTimer();
+      setControlsVisible(true);
+    }
+    return clearHideTimer;
+  }, [isPlaying, scheduleHide, clearHideTimer]);
+
+  useEffect(() => {
+    marcarIniciado(USUARIO_DEMO_ID, movie).catch(() => {});
+  }, [movie]);
 
   const displayDuration = duration > 0 ? duration : movie.durationMin * 60;
   const progress = displayDuration > 0 ? Math.min(1, currentTime / displayDuration) : 0;
@@ -93,10 +192,12 @@ function PlayerContent({ movie }: { movie: Movie }) {
     } else {
       player.play();
     }
+    revealControls();
   }
 
   function seekBy(seconds: number) {
     player.seekBy(seconds);
+    revealControls();
   }
 
   function seekTo(ratio: number) {
@@ -108,6 +209,7 @@ function PlayerContent({ movie }: { movie: Movie }) {
       return;
     }
     instance.currentTime = Math.max(0, Math.min(1, ratio)) * displayDuration;
+    revealControls();
   }
 
   function cycleRate() {
@@ -117,6 +219,44 @@ function PlayerContent({ movie }: { movie: Movie }) {
     if (instance) {
       instance.playbackRate = RATES[nextIndex];
     }
+    revealControls();
+  }
+
+  function toggleControls() {
+    if (controlsVisible) {
+      clearHideTimer();
+      setControlsVisible(false);
+      return;
+    }
+    revealControls();
+  }
+
+  function handlePressFullscreen() {
+    setFullscreen(true);
+    lockOrientation('LANDSCAPE');
+    revealControls();
+  }
+
+  function handleExitFullscreen() {
+    setFullscreen(false);
+    unlockOrientation();
+    revealControls();
+  }
+
+  function handleClosePlayer() {
+    if (fullscreen) {
+      handleExitFullscreen();
+    }
+    player.pause();
+    goBackOrHome();
+  }
+
+  // Handler para o Pressable de fundo - seek direto pelo tap
+  function handleProgressBarPress(event: { nativeEvent: { locationX: number } }) {
+    if (barWidth <= 0) return;
+    const ratio = event.nativeEvent.locationX / barWidth;
+    const targetTime = Math.max(0, Math.min(displayDuration, ratio * displayDuration));
+    seekTo(targetTime / displayDuration);
   }
 
   function retry() {
@@ -130,16 +270,13 @@ function PlayerContent({ movie }: { movie: Movie }) {
       });
   }
 
-  function closePlayer() {
-    player.pause();
-    goBackOrHome();
-  }
-
   return (
     <View style={styles.screen}>
       <StatusBar style="light" />
-      <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <Pressable onPress={closePlayer} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+      
+      {/* Top bar - hidden in fullscreen */}
+      <View style={[styles.topBar, { paddingTop: insets.top + 8 }, !controlsVisible && styles.controlsHidden]} pointerEvents={controlsVisible ? 'auto' : 'none'}>
+        <Pressable onPress={handleClosePlayer} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
           <MaterialIcons name="close" size={24} color={Brand.white} />
         </Pressable>
         <Text style={styles.castLabel} numberOfLines={1}>
@@ -156,6 +293,18 @@ function PlayerContent({ movie }: { movie: Movie }) {
       </View>
 
       <View style={styles.videoBox}>
+        {fullscreen && controlsVisible && (
+          <View style={styles.fullscreenExitBar}>
+            <Pressable
+              onPress={handleExitFullscreen}
+              style={({ pressed }) => [styles.exitButton, pressed && styles.pressed]}
+              accessibilityLabel="Sair da tela cheia"
+            >
+              <MaterialIcons name="fullscreen-exit" size={24} color={Brand.white} />
+            </Pressable>
+          </View>
+        )}
+        
         <VideoView
           ref={videoRef}
           player={player}
@@ -163,6 +312,13 @@ function PlayerContent({ movie }: { movie: Movie }) {
           nativeControls={false}
           contentFit="contain"
           playsInline
+        />
+
+        <Pressable
+          style={styles.tapLayer}
+          onPress={toggleControls}
+          accessibilityRole="button"
+          accessibilityLabel={controlsVisible ? 'Ocultar controles' : 'Mostrar controles'}
         />
 
         {status === 'error' ? (
@@ -175,7 +331,7 @@ function PlayerContent({ movie }: { movie: Movie }) {
               <Pressable onPress={retry} style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}>
                 <Text style={styles.retryLabel}>TENTAR NOVAMENTE</Text>
               </Pressable>
-              <Pressable onPress={closePlayer} style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
+              <Pressable onPress={handleClosePlayer} style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
                 <Text style={styles.backLabel}>VOLTAR</Text>
               </Pressable>
             </View>
@@ -185,7 +341,7 @@ function PlayerContent({ movie }: { movie: Movie }) {
             <ActivityIndicator color={Brand.white} size="large" />
           </View>
         ) : (
-          <View style={styles.centerControls} pointerEvents="box-none">
+          <View style={[styles.centerControls, !controlsVisible && styles.controlsHidden]} pointerEvents={controlsVisible ? 'box-none' : 'none'}>
             <Pressable
               onPress={() => seekBy(-10)}
               style={({ pressed }) => [styles.skipButton, pressed && styles.pressed]}>
@@ -206,14 +362,15 @@ function PlayerContent({ movie }: { movie: Movie }) {
           </View>
         )}
 
-        <View style={styles.progressArea} pointerEvents="box-none">
+        {/* Barra de progresso - tap para seek */}
+        <View style={[styles.progressArea, !controlsVisible && styles.controlsHidden]}>
           <View style={styles.timesRow}>
             <Text style={styles.timeText}>{formatClock(currentTime)}</Text>
             <Text style={styles.timeRest}>{formatRemaining(Math.max(0, displayDuration - currentTime))}</Text>
           </View>
           <Pressable
             onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
-            onPress={(event) => seekTo(event.nativeEvent.locationX / (barWidth || 1))}
+            onPress={handleProgressBarPress}
             style={styles.progressTrack}>
             <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
             <View style={[styles.progressThumb, { left: `${progress * 100}%` }]} />
@@ -221,59 +378,35 @@ function PlayerContent({ movie }: { movie: Movie }) {
         </View>
       </View>
 
-      <ScrollView style={styles.info} contentContainerStyle={styles.infoContent}>
-        <View style={styles.controlsRow}>
-          <Pressable
-            onPress={() => showNotice('Áudio e legendas em breve.')}
-            style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
-            <MaterialIcons name="subtitles" size={16} color={Brand.white} />
-            <Text style={styles.controlChipLabel}>Áudio e legendas</Text>
-          </Pressable>
-          <Pressable
-            onPress={cycleRate}
-            style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
-            <MaterialIcons name="speed" size={16} color={Brand.white} />
-            <Text style={styles.controlChipLabel}>{rate}x</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => videoRef.current?.enterFullscreen()}
-            style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
-            <MaterialIcons name="fullscreen" size={18} color={Brand.white} />
-          </Pressable>
-        </View>
-
-        <Text style={styles.movieTitle}>{movie.title}</Text>
-        <Text style={styles.movieSub}>
-          {movie.tagline} • {formatWatched(currentTime)} de {formatDuration(Math.round(displayDuration / 60))}
-        </Text>
-
-        {nextMovie ? (
-          <View style={styles.nextSection}>
-            <View style={styles.nextHeader}>
-              <Text style={styles.nextLabel}>A SEGUIR NA LULY</Text>
-              <Text style={styles.nextHint}>em breve</Text>
-            </View>
+      {/* Info - oculto em fullscreen */}
+      {!fullscreen && (
+        <ScrollView style={styles.info} contentContainerStyle={styles.infoContent}>
+          <View style={styles.controlsRow}>
             <Pressable
-              onPress={() =>
-                router.replace({ pathname: '/player/[id]', params: { id: String(nextMovie.id) } })
-              }
-              style={({ pressed }) => [styles.nextCard, pressed && styles.pressed]}>
-              <Image source={{ uri: nextMovie.poster }} style={styles.nextPoster} contentFit="cover" />
-              <View style={styles.nextInfo}>
-                <Text style={styles.nextTitle} numberOfLines={1}>
-                  {nextMovie.title}
-                </Text>
-                <Text style={styles.nextMeta}>
-                  {nextMovie.genre} • {formatDuration(nextMovie.durationMin)}
-                </Text>
-              </View>
-              <View style={styles.nextPlay}>
-                <MaterialIcons name="play-arrow" size={24} color={Brand.white} />
-              </View>
+              onPress={() => showNotice('Áudio e legendas em breve.')}
+              style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
+              <MaterialIcons name="subtitles" size={16} color={Brand.white} />
+              <Text style={styles.controlChipLabel}>Áudio e legendas</Text>
+            </Pressable>
+            <Pressable
+              onPress={cycleRate}
+              style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
+              <MaterialIcons name="speed" size={16} color={Brand.white} />
+              <Text style={styles.controlChipLabel}>{rate}x</Text>
+            </Pressable>
+            <Pressable
+              onPress={handlePressFullscreen}
+              style={({ pressed }) => [styles.controlChip, pressed && styles.pressed]}>
+              <MaterialIcons name="fullscreen" size={18} color={Brand.white} />
             </Pressable>
           </View>
-        ) : null}
-      </ScrollView>
+
+          <Text style={styles.movieTitle}>{movie.title}</Text>
+          <Text style={styles.movieSub}>
+            {movie.tagline} • {formatWatched(currentTime)} de {formatDuration(Math.round(displayDuration / 60))}
+          </Text>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -316,14 +449,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'rgba(255, 255, 255, 0.75)',
   },
+  fullscreenExitBar: {
+    position: 'absolute' as const,
+    top: 50,
+    right: 20,
+    zIndex: 10,
+  },
+  exitButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   videoBox: {
-    width: '100%',
-    aspectRatio: 16 / 9,
+    flex: 1,
     backgroundColor: Brand.black,
     justifyContent: 'center',
   },
   video: {
     ...StyleSheet.absoluteFill,
+  },
+  tapLayer: {
+    ...StyleSheet.absoluteFill,
+  },
+  controlsHidden: {
+    opacity: 0,
   },
   videoOverlay: {
     ...StyleSheet.absoluteFill,
@@ -428,6 +580,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   progressFill: {
     position: 'absolute',
@@ -484,62 +637,6 @@ const styles = StyleSheet.create({
   movieSub: {
     ...TypeScale.subtitle,
     color: 'rgba(255, 255, 255, 0.65)',
-  },
-  nextSection: {
-    marginTop: 22,
-    gap: 10,
-  },
-  nextHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  nextLabel: {
-    ...TypeScale.caption,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    color: Brand.white,
-  },
-  nextHint: {
-    ...TypeScale.caption,
-    color: 'rgba(255, 255, 255, 0.6)',
-  },
-  nextCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: PlayerColors.surface,
-    borderWidth: 1.5,
-    borderColor: PlayerColors.borderSubtle,
-  },
-  nextPoster: {
-    width: 64,
-    height: 44,
-    borderRadius: 6,
-    backgroundColor: Brand.black,
-  },
-  nextInfo: {
-    flex: 1,
-    gap: 3,
-  },
-  nextTitle: {
-    ...TypeScale.cardTitleSmall,
-    fontWeight: '900',
-    color: Brand.white,
-  },
-  nextMeta: {
-    ...TypeScale.caption,
-    color: 'rgba(255, 255, 255, 0.6)',
-  },
-  nextPlay: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Brand.red,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   pressed: {
     opacity: 0.85,
