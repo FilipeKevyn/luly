@@ -24,79 +24,127 @@
 
 ## Funcionalidades
 
+- **Catálogo via API** — filmes, detalhes e busca vêm do backend; a tela inicial trata indisponibilidade da API com mensagem e opção de tentar novamente.
+- **Busca e filtros** — tela de busca com filtro por gênero e ordenação por avaliação, recentes ou A–Z.
 - **Adicionar a uma lista** — bottom sheet reutilizável na tela inicial e nos detalhes, com seleção de listas existentes e criação de nova lista.
 - **Listas múltiplas** — cada filme pode estar em mais de uma lista; adicionar novamente é idempotente.
 - **Filmes salvos** — grade com todos os títulos presentes em qualquer lista, além da visão de listas individuais.
-- **Player customizado** — controles próprios sobre `expo-video`, incluindo progresso, seek por toque, velocidade `1x`/`1.5x`/`2x` e tela cheia.
-- **A seguir na Luly** — troca direta para o próximo filme do catálogo sem sair do player.
+- **Player customizado** — controles próprios sobre `expo-video`, incluindo progresso, seek por toque, avanço/retrocesso de 10s, velocidade `1x`/`1.5x`/`2x` e tela cheia.
 - **Tema claro e escuro** — botão de alternância em todas as telas, com preferência persistida e paleta semântica compartilhada.
 
 ---
 
 ## Stack
 
-| Camada           | Escolha                                                   |
-| ---------------- | --------------------------------------------------------- |
-| **Runtime**      | Expo SDK 57 · React Native 0.86 · React 19                |
-| **Linguagem**    | TypeScript 6                                              |
-| **Navegação**    | Expo Router com rotas tipadas e `NativeTabs`              |
-| **UI**           | React Native `StyleSheet` · `expo-image` · Material Icons |
-| **Tipografia**   | Nunito (`400`–`900`) via `@expo-google-fonts/nunito`      |
-| **Persistência** | `expo-sqlite` (API assíncrona) + migrations versionadas   |
-| **Playback**     | `expo-video`                                              |
-| **Validação**    | Zod                                                       |
-| **Animação**     | React Native Reanimated + Worklets                        |
-| **Web**          | React Native Web + Metro                                  |
-| **Qualidade**    | ESLint + TypeScript                                       |
+| Camada                | Escolha                                                   |
+| --------------------- | --------------------------------------------------------- |
+| **Runtime**           | Expo SDK 57 · React Native 0.86 · React 19                |
+| **Linguagem**         | TypeScript 6                                              |
+| **Navegação**         | Expo Router com rotas tipadas e `NativeTabs`              |
+| **UI**                | React Native `StyleSheet` · `expo-image` · Material Icons |
+| **Tipografia**        | Nunito (`400`–`900`) via `@expo-google-fonts/nunito`      |
+| **Persistência local** | `expo-sqlite` (API assíncrona) + migrations versionadas   |
+| **Backend**           | Fastify 4 · Drizzle ORM · PostgreSQL (Neon ou local)      |
+| **Playback**          | `expo-video`                                              |
+| **Validação**         | Zod no app e no backend                                   |
+| **Animação**          | React Native Reanimated + Worklets                        |
+| **Web**               | React Native Web + Metro                                  |
+| **Qualidade**         | ESLint + TypeScript                                       |
 
 ---
 
 ## Arquitetura
 
 ```text
-src/
-├── app/                     # Rotas do Expo Router
-│   ├── index.tsx            # Entrada
-│   ├── (tabs)/
-│   │   ├── inicio.tsx       # Início
-│   │   └── minha-lista.tsx  # Listas
-│   ├── movie/[id].tsx       # Detalhes do filme
-│   ├── list/[id].tsx        # Conteúdo de uma lista
-│   └── player/[id].tsx      # Player em tela cheia
-├── components/              # Componentes visuais e sheets/modais
-├── constants/theme.ts       # Paleta Brand e espaçamentos
-├── constants/typography.ts  # Famílias e escala tipográfica Nunito
-├── data/movies.ts           # Catálogo mock validado com Zod
-├── db/
-│   ├── client.ts            # Abertura do banco + usuário demo
-│   ├── schema.ts            # DDL e versão do schema
-│   └── repositories.ts      # Consultas e mutações por domínio
-├── hooks/                   # Tema e color scheme
-└── utils/                   # Navegação, formatação e feedback
+.
+├── src/                     # App Expo
+│   ├── app/                 # Rotas do Expo Router
+│   │   ├── index.tsx        # Entrada
+│   │   ├── (tabs)/
+│   │   │   ├── inicio.tsx   # Início
+│   │   │   ├── buscar.tsx   # Busca
+│   │   │   └── minha-lista.tsx
+│   │   ├── movie/[id].tsx   # Detalhes do filme
+│   │   ├── list/[id].tsx    # Conteúdo de uma lista
+│   │   └── player/[id].tsx  # Player em tela cheia
+│   ├── components/          # Componentes visuais e sheets/modais
+│   ├── constants/           # Tema, tipografia e espaçamentos
+│   ├── contexts/            # Tema e autenticação
+│   ├── data/movies.ts       # Schemas Zod e tipos do catálogo
+│   ├── db/                  # SQLite local
+│   │   ├── client.ts        # Abertura do banco + usuário demo
+│   │   ├── schema.ts        # DDL e versão do schema
+│   │   └── repositories.ts  # Consultas e mutações por domínio
+│   ├── hooks/               # Tema, color scheme e catálogo
+│   ├── services/            # Cliente HTTP e adapter do catálogo
+│   ├── utils/               # Navegação, formatação e feedback
+│   └── config.ts            # Resolução da URL da API
+├── backend/
+│   ├── src/
+│   │   ├── index.ts         # Fastify, plugins, rotas e health checks
+│   │   ├── config/          # Validação do .env com Zod
+│   │   ├── db/              # Client Drizzle, schema, migrate e seed
+│   │   ├── middleware/      # Auth, erros e logging
+│   │   ├── routes/          # auth, movies, lists, viewings e sync
+│   │   ├── schemas/         # Schemas compartilhados
+│   │   ├── services/        # Auth, catálogo e Drive
+│   │   └── types/           # Tipos do backend
+│   ├── drizzle/             # Arquivos SQL de migration
+│   ├── scripts/             # Scripts auxiliares de banco
+│   ├── drizzle.config.ts
+│   └── .env.example
+├── app.json                 # Configuração do Expo
+├── package.json             # Dependências e scripts do app
+└── tsconfig.json
 ```
 
 ---
 
 ## Dados e persistência
 
-### SQLite
+### SQLite (mobile)
 
 O banco `luly.db` é criado por `src/db/client.ts` com:
 
 - `PRAGMA journal_mode = WAL`;
 - `PRAGMA foreign_keys = ON`;
 - controle de versão por `PRAGMA user_version`;
-- usuário demo fixo (`id = 1`), já que ainda não existe login.
+- usuário demo fixo (`id = 1`), já que ainda não existe tela de login no app.
 
 Tabelas:
 
-| Tabela          | Função                                         |
-| --------------- | ---------------------------------------------- |
-| `usuarios`      | Usuário demo do MVP                            |
-| `filmes`        | Metadados mínimos para integridade referencial |
-| `listas`        | Listas criadas pelo usuário                    |
-| `lista_filmes`  | Relação N:N entre listas e filmes              |
-| `visualizacoes` | Filmes iniciados/finalizados e nota do usuário |
+| Tabela          | Função                                                   |
+| --------------- | -------------------------------------------------------- |
+| `usuarios`      | Usuário demo local do MVP                                |
+| `filmes`        | Snapshot JSON do filme retornado pela API (id UUID)      |
+| `listas`        | Listas criadas pelo usuário                              |
+| `lista_filmes`  | Relação N:N entre listas e filmes                        |
+| `visualizacoes` | Filmes iniciados/finalizados e nota do usuário           |
+
+
+### PostgreSQL (backend)
+
+O backend usa PostgreSQL via Drizzle ORM. Tabelas principais:
+
+| Tabela                     | Função                                      |
+| -------------------------- | ------------------------------------------- |
+| `users`                    | Usuários e hash de senha                    |
+| `movies`                   | Catálogo próprio, com link opcional do Drive |
+| `lists`                    | Listas do usuário                           |
+| `list_items`               | Relação N:N entre listas e filmes           |
+| `viewings`                 | Histórico, finalização e nota               |
+| `sync_state`               | Cursor de sincronização por usuário         |
+| `outbox`                   | Auditoria de operações de sincronização     |
+| `refresh_token_blocklist`  | Revogação de refresh tokens                 |
+
+### Integração atual
+
+- O app mobile consome do backend o catálogo (`GET /movies`) e os detalhes (`GET /movies/:id`).
+- Listas, filmes salvos e visualizações permanecem no SQLite local.
+- O backend registra as rotas nos prefixos `/auth`, `/movies`, `/lists`, `/viewings` e `/sync`; os health checks ficam na raiz (`/health` e `/health/ready`).
+- O backend também expõe rotas de listas, visualizações e sincronização, mas o app mobile atual ainda não as utiliza.
+- Em desenvolvimento, o CORS do backend aceita qualquer origem; em produção, a lista é restrita a `luly.app` e subdomínios.
+- Sem filmes no banco, a API retorna catálogo vazio; o seed de desenvolvimento popula alguns exemplos.
 
 ---
 
@@ -104,32 +152,86 @@ Tabelas:
 
 ### Requisitos
 
-- **Node.js** compatível com React Native 0.86 (20.19.4+, 22.13+, 24.3+ ou 25+).
-- **npm** (o projeto usa `package-lock.json`).
-- **Expo Go** no celular.
+| Item | Observação |
+| --- | --- |
+| **Node.js** | Compatível com React Native 0.86 (20.19.4+, 22.13+, 24.3+ ou 25+). |
+| **npm** | O projeto usa `package-lock.json` na raiz e em `backend/`. |
+| **Expo Go** | Precisa ser compatível com o SDK 57. |
 
-### Instalação
+### 1. Instalar as dependências
+
+Na raiz do projeto:
 
 ```bash
 npm install
 ```
 
-### Desenvolvimento
+Depois, no backend:
+
+```bash
+cd backend
+npm install
+```
+
+### 2. Configurar o backend
+
+Crie o arquivo `.env` a partir do exemplo:
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+Edite `backend/.env` com os valores do seu ambiente.
+
+#### Variáveis de ambiente
+
+| Variável | Observação |
+| --- | --- |
+| `DATABASE_URL` | Connection string do PostgreSQL/Neon. |
+| `JWT_SECRET` | Mínimo de 32 caracteres. Gere com `openssl rand -base64 32`. |
+
+
+### 3. Iniciar o backend
+
+Sempre execute os comandos do backend dentro da pasta `backend/`, porque o `.env` e o diretório `./drizzle` são resolvidos a partir do diretório atual.
+
+```bash
+cd backend
+npm run dev
+```
+
+Saída esperada:
+
+```text
+🚀 Server running at http://0.0.0.0:3333
+```
+
+Para parar o servidor, use `Ctrl+C`.
+
+### 4. Iniciar o Expo
+
+Na raiz do projeto:
 
 ```bash
 npm start
 ```
 
-### Scripts
+O comando executa `expo start` e sobe o Metro/Expo Dev Server. O terminal mostra o QR Code e o endereço do dev server.
 
-| Comando           | Descrição                            |
-| ----------------- | ------------------------------------ |
-| `npm start`       | Inicia o servidor de desenvolvimento |
-| `npm run android` | Abre no Android                      |
-| `npm run ios`     | Abre no iOS                          |
-| `npm run web`     | Abre a versão web                    |
 
----
+### 5. Scripts
+
+
+| Comando | Descrição |
+| --- | --- |
+| `npm start` | Inicia o Metro/Expo Dev Server para uso com Expo Go. |
+| `npm run android` | Executa `expo run:android`; gera/builda o app nativo Android. Requer Android Studio/SDK. |
+| `npm run ios` | Executa `expo run:ios`; gera/builda o app nativo iOS. Requer macOS/Xcode. |
+| `npm run web` | Inicia a versão web com Metro. |
+| `npm run lint` | Executa o ESLint do app. |
+| `npm run dev` | Inicia o backend em modo watch com `tsx`. |
+
 
 ## Prints
 
