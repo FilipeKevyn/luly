@@ -145,6 +145,36 @@ export async function movieRoutes(app: FastifyInstance) {
     },
   );
 
+  // GET /api/v1/movies/genres - Gêneros disponíveis no catálogo
+  typedApp.get(
+    '/genres',
+    {
+      schema: {
+        response: {
+          200: z.object({
+            success: z.literal(true),
+            data: z.object({
+              genres: z.array(z.string()),
+            }),
+          }),
+        },
+      },
+    },
+    async () => {
+      const rows = await db
+        .selectDistinct({ genre: sql<string>`unnest(${movies.genres})` })
+        .from(movies)
+        .where(isNull(movies.deletedAt));
+
+      const genres = rows
+        .map((row) => row.genre)
+        .filter((genre): genre is string => typeof genre === 'string' && genre.length > 0)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      return { success: true as const, data: { genres } };
+    },
+  );
+
   // GET /api/v1/movies/:id - Detalhe por UUID
   typedApp.get<{ Params: { id: string } }>(
     '/:id',

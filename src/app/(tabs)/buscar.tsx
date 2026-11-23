@@ -23,19 +23,11 @@ import { FontFamily, TypeScale } from "@/constants/typography";
 import { useAuth } from "@/contexts/auth-context";
 import { useMovies } from "@/hooks/use-movies";
 import type { Movie } from "@/data/movies";
+import { fetchGenres } from "@/services/api";
 import { openMovie } from "@/utils/navigation";
 
 const SEARCH_PLACEHOLDER = "filmes para uma noite...";
-
-const SEARCH_FILTERS = [
-  { key: "tudo", label: "Tudo" },
-  { key: "drama", label: "Drama" },
-  { key: "comedia", label: "Comédia" },
-  { key: "ficcao", label: "Ficção" },
-  { key: "brasil", label: "Brasil" },
-] as const;
-
-type SearchFilterKey = (typeof SEARCH_FILTERS)[number]["key"];
+const ALL_GENRES_FILTER = "tudo";
 
 const SORT_ORDER = ["avaliacao", "recentes", "alfabetico"] as const;
 
@@ -67,32 +59,72 @@ interface SearchContentProps {
   initialQuery: string;
 }
 
-const FILTER_GENRES: Record<SearchFilterKey, string | undefined> = {
-  tudo: undefined,
-  drama: "Drama",
-  comedia: "Comédia",
-  ficcao: "Ficção científica",
-  brasil: undefined,
-};
+function normalizeGenre(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function findExactGenre(query: string, genres: readonly string[]): string | null {
+  const normalized = normalizeGenre(query);
+  if (!normalized) {
+    return null;
+  }
+  return genres.find((genre) => normalizeGenre(genre) === normalized) ?? null;
+}
 
 function SearchContent({ initialQuery }: SearchContentProps) {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { token } = useAuth();
-  const [filter, setFilter] = useState<SearchFilterKey>("tudo");
-  const { movies, search } = useMovies(token, FILTER_GENRES[filter]);
   const [query, setQuery] = useState(initialQuery);
+  const [filter, setFilter] = useState<string>(ALL_GENRES_FILTER);
+  const [genres, setGenres] = useState<string[]>([]);
   const [sort, setSort] = useState<SortKey>("avaliacao");
   const [sortSheetVisible, setSortSheetVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  const typedGenre = useMemo(
+    () => findExactGenre(query, genres),
+    [query, genres],
+  );
+  const activeGenre =
+    typedGenre ?? (filter === ALL_GENRES_FILTER ? undefined : filter);
+  const filterOptions = useMemo(
+    () => [ALL_GENRES_FILTER, ...genres],
+    [genres],
+  );
+  const { movies, search } = useMovies(token, activeGenre);
+
+  useEffect(() => {
+    let active = true;
+    fetchGenres(token)
+      .then((available) => {
+        if (active) {
+          setGenres(available);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setGenres([]);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      search(query);
+      // Quando o texto digitado é exatamente um gênero, usamos o filtro
+      // estruturado da API em vez da busca textual livre.
+      search(typedGenre ? "" : query);
     }, 300);
     return () => clearTimeout(timer);
-  }, [query, search]);
+  }, [query, typedGenre, search]);
 
   const results = useMemo(() => {
     return sortMovies(movies, sort);
@@ -110,7 +142,13 @@ function SearchContent({ initialQuery }: SearchContentProps) {
 
   function resetSearch() {
     setQuery("");
-    setFilter("tudo");
+    setFilter(ALL_GENRES_FILTER);
+    inputRef.current?.blur();
+  }
+
+  function selectFilter(option: string) {
+    setFilter(option);
+    setQuery("");
     inputRef.current?.blur();
   }
 
@@ -179,12 +217,15 @@ function SearchContent({ initialQuery }: SearchContentProps) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipsRow}
         >
-          {SEARCH_FILTERS.map((item) => {
-            const active = filter === item.key;
+          {filterOptions.map((option) => {
+            const active =
+              option === ALL_GENRES_FILTER
+                ? activeGenre === undefined
+                : option === activeGenre;
             return (
               <Pressable
-                key={item.key}
-                onPress={() => setFilter(item.key)}
+                key={option}
+                onPress={() => selectFilter(option)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 style={({ pressed }) => [
@@ -196,7 +237,7 @@ function SearchContent({ initialQuery }: SearchContentProps) {
                 <Text
                   style={[styles.chipLabel, active && styles.chipLabelActive]}
                 >
-                  {item.label}
+                  {option === ALL_GENRES_FILTER ? "Tudo" : option}
                 </Text>
               </Pressable>
             );

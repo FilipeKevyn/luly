@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -24,7 +24,7 @@ import { Brand, type ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
 import { env } from '@/config';
 import { useAuth } from '@/contexts/auth-context';
-import { useMovies } from '@/hooks/use-movies';
+import { useAllMovies } from '@/hooks/use-all-movies';
 import type { Movie } from '@/data/movies';
 import { showNotice } from '@/utils/feedback';
 import { formatRating } from '@/utils/format';
@@ -34,19 +34,44 @@ import { RefreshControl } from 'react-native';
 const AVATAR_URI = 'https://picsum.photos/seed/luly-user/200/200';
 const HERO_AUTO_ADVANCE_MS = 5000;
 
+interface GenreSection {
+  genre: string;
+  movies: Movie[];
+}
+
+function buildGenreSections(movies: readonly Movie[]): GenreSection[] {
+  const grouped = new Map<string, Movie[]>();
+
+  for (const movie of movies) {
+    const genres = movie.genres.length > 0 ? movie.genres : [movie.genre];
+    for (const genre of genres) {
+      const list = grouped.get(genre);
+      if (list) {
+        list.push(movie);
+      } else {
+        grouped.set(genre, [movie]);
+      }
+    }
+  }
+
+  return [...grouped.entries()]
+    .map(([genre, list]) => ({ genre, movies: list }))
+    .sort(
+      (a, b) =>
+        b.movies.length - a.movies.length ||
+        a.genre.localeCompare(b.genre, 'pt-BR'),
+    );
+}
+
 export default function InicioScreen() {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { token } = useAuth();
-  const { movies, loading, error, refresh, refreshing } = useMovies(token);
-  const featuredMovies = movies.filter((m) => m.featured);
+  const { movies, loading, error, refresh, refreshing } = useAllMovies(token);
+  const featuredMovies = useMemo(() => movies.filter((m) => m.featured), [movies]);
   const slideCount = featuredMovies.length;
-  const sections = [
-    { genre: 'Drama', movies: movies.filter((m) => m.genres.includes('Drama')).slice(0, 6) },
-    { genre: 'Ação', movies: movies.filter((m) => m.genres.includes('Ação')).slice(0, 6) },
-    { genre: 'Ficção científica', movies: movies.filter((m) => m.genres.includes('Ficção científica')).slice(0, 6) },
-  ];
+  const sections = useMemo(() => buildGenreSections(movies), [movies]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [heroWidth, setHeroWidth] = useState(0);

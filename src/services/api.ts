@@ -229,3 +229,12 @@ export async function fetchMovieById(
 ): Promise<MovieCatalogItem> {
   return request('GET', `/movies/${id}`, undefined, token);
 }
+
+interface GenresData {
+  genres: string[];
+}
+
+export async function fetchGenres(token?: string | null): Promise<string[]> {
+  const result = await request<GenresData>('GET', '/movies/genres', undefined, token);
+  return result.genres;
+}

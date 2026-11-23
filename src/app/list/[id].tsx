@@ -17,6 +17,7 @@ import { MovieCard } from '@/components/movie-card';
 import { ScreenMessage } from '@/components/screen-message';
 import { Text } from '@/components/text';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useAuth } from '@/contexts/auth-context';
 import { useTheme, useThemedStyles } from '@/contexts/theme-context';
 import type { ThemePalette } from '@/constants/theme';
 import { TypeScale } from '@/constants/typography';
@@ -28,6 +29,7 @@ import {
   removeFilmeDaLista,
   type Lista,
 } from '@/db/repositories';
+import { refreshMovieSnapshots } from '@/services/library';
 import { showNotice } from '@/utils/feedback';
 import { goBackOrHome, openMovie } from '@/utils/navigation';
 
@@ -64,6 +66,7 @@ function ListaContent({ listaId }: { listaId: number }) {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
+  const { token } = useAuth();
   const [state, setState] = useState<ListaState>({ status: 'loading' });
   const [layout, setLayout] = useState<LayoutMode>('grid');
 
@@ -75,12 +78,13 @@ function ListaContent({ listaId }: { listaId: number }) {
         return;
       }
       const movies = await listFilmesDaLista(listaId);
-      setState({ status: 'ready', lista, movies });
+      const refreshed = await refreshMovieSnapshots(movies, token);
+      setState({ status: 'ready', lista, movies: refreshed });
     } catch {
       showNotice('Não foi possível carregar a lista.');
       setState({ status: 'missing' });
     }
-  }, [listaId]);
+  }, [listaId, token]);
 
   useFocusEffect(
     useCallback(() => {

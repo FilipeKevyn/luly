@@ -12,6 +12,7 @@ import { ListCard, type ListaView } from "@/components/list-card";
 import { MovieCard } from "@/components/movie-card";
 import { Text } from "@/components/text";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/contexts/auth-context";
 import { useTheme, useThemedStyles } from "@/contexts/theme-context";
 import type { ThemePalette } from "@/constants/theme";
 import { TypeScale } from "@/constants/typography";
@@ -23,6 +24,7 @@ import {
   listListasComContagem,
   USUARIO_DEMO_ID,
 } from "@/db/repositories";
+import { refreshMovieSnapshots } from "@/services/library";
 import { showNotice } from "@/utils/feedback";
 import { openList, openMovie, openPlayer } from "@/utils/navigation";
 
@@ -33,6 +35,7 @@ export default function MinhaListaScreen() {
   const theme = useTheme();
   const styles = useThemedStyles(createStyles);
   const insets = useSafeAreaInsets();
+  const { token } = useAuth();
   const [saved, setSaved] = useState<Movie[]>([]);
   const [listas, setListas] = useState<ListaView[]>([]);
   const [continueWatching, setContinueWatching] = useState<Movie | null>(null);
@@ -47,23 +50,33 @@ export default function MinhaListaScreen() {
         getContinueAssistindo(USUARIO_DEMO_ID),
         listListasComContagem(USUARIO_DEMO_ID),
       ]);
+      const [refreshedSaved, refreshedContinue] = await Promise.all([
+        refreshMovieSnapshots(savedMovies, token),
+        refreshMovieSnapshots(
+          views.map((view) => view.filme),
+          token,
+        ),
+      ]);
+      const refreshedById = new Map(
+        refreshedSaved.map((movie) => [movie.id, movie]),
+      );
       const listasComCovers = await Promise.all(
         allListas.map(async (lista): Promise<ListaView> => {
           const movies = await listFilmesDaLista(lista.id);
           const covers = movies
-            .map((movie) => movie.poster)
+            .map((movie) => refreshedById.get(movie.id)?.poster ?? movie.poster)
             .filter((poster): poster is string => poster.length > 0)
             .slice(0, 4);
           return { ...lista, covers };
         }),
       );
-      setSaved(savedMovies);
-      setContinueWatching(views[0]?.filme ?? null);
+      setSaved(refreshedSaved);
+      setContinueWatching(refreshedContinue[0] ?? null);
       setListas(listasComCovers);
     } catch {
       showNotice("Não foi possível carregar suas listas.");
     }
-  }, []);
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {

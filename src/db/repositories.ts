@@ -35,7 +35,7 @@ function parseMovieRows(rows: { dados_json: string }[]): Movie[] {
     .filter((movie): movie is Movie => movie !== null);
 }
 
-async function salvarFilme(movie: Movie): Promise<void> {
+export async function salvarFilme(movie: Movie): Promise<void> {
   const db = await getDatabase();
   await db.runAsync(
     `INSERT INTO filmes (id, dados_json, atualizado_em)
