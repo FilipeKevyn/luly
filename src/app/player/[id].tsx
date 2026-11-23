@@ -4,7 +4,14 @@ import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { VideoView, useVideoPlayer, type VideoPlayer } from 'expo-video';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedStatusBar } from '@/components/app-status-bar';
@@ -100,6 +107,7 @@ export default function PlayerScreen() {
 
 function PlayerContent({ movie }: { movie: Movie }) {
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
   const videoRef = useRef<VideoView>(null);
   const playerRef = useRef<VideoPlayer | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
@@ -107,7 +115,9 @@ function PlayerContent({ movie }: { movie: Movie }) {
   const [rateIndex, setRateIndex] = useState(0);
   const [barWidth, setBarWidth] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [fullscreen, setFullscreen] = useState(false);
+  // Tela cheia acompanha a rotação do aparelho: em paisagem o vídeo ocupa
+  // toda a tela e os blocos de informação saem de cena.
+  const fullscreen = width > height;
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const player = useVideoPlayer(movie.videoUrl, (instance) => {
@@ -131,17 +141,14 @@ function PlayerContent({ movie }: { movie: Movie }) {
     marcarFinalizado(USUARIO_DEMO_ID, movie).catch(() => {});
   });
 
-  // Restaurar orientação quando sair do fullscreen
+  // Libera a rotação enquanto o player está aberto para que o aparelho possa
+  // entrar em paisagem e o vídeo ocupe a tela toda. Ao sair, o app volta
+  // para retrato.
   useEffect(() => {
-    if (!fullscreen) return;
+    unlockOrientation();
     return () => {
-      unlockOrientation();
+      lockOrientation('PORTRAIT_UP');
     };
-  }, [fullscreen]);
-
-  // Trancar portrait no montar
-  useEffect(() => {
-    lockOrientation('PORTRAIT_UP');
   }, []);
 
   const clearHideTimer = useCallback(() => {
@@ -232,21 +239,16 @@ function PlayerContent({ movie }: { movie: Movie }) {
   }
 
   function handlePressFullscreen() {
-    setFullscreen(true);
     lockOrientation('LANDSCAPE');
     revealControls();
   }
 
   function handleExitFullscreen() {
-    setFullscreen(false);
-    unlockOrientation();
+    lockOrientation('PORTRAIT_UP');
     revealControls();
   }
 
   function handleClosePlayer() {
-    if (fullscreen) {
-      handleExitFullscreen();
-    }
     player.pause();
     goBackOrHome();
   }
@@ -272,29 +274,42 @@ function PlayerContent({ movie }: { movie: Movie }) {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="light" />
-      
-      {/* Top bar - hidden in fullscreen */}
-      <View style={[styles.topBar, { paddingTop: insets.top + 8 }, !controlsVisible && styles.controlsHidden]} pointerEvents={controlsVisible ? 'auto' : 'none'}>
-        <Pressable onPress={handleClosePlayer} style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-          <MaterialIcons name="close" size={24} color={Brand.white} />
-        </Pressable>
-        <Text style={styles.castLabel} numberOfLines={1}>
-          Reproduzindo na TV da sala
-        </Text>
-        <View style={styles.topBarActions}>
-          <ThemeToggle variant="onMedia" style={styles.themeToggle} />
+      <StatusBar style="light" hidden={fullscreen} />
+
+      {/* Top bar - oculta em tela cheia */}
+      {!fullscreen && (
+        <View
+          style={[
+            styles.topBar,
+            { paddingTop: insets.top + 8 },
+            !controlsVisible && styles.controlsHidden,
+          ]}
+          pointerEvents={controlsVisible ? 'auto' : 'none'}
+        >
           <Pressable
-            onPress={() => showNotice('Transmissão para TV em breve.')}
+            onPress={handleClosePlayer}
             style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
-            <MaterialIcons name="cast" size={22} color={Brand.white} />
+            <MaterialIcons name="close" size={24} color={Brand.white} />
           </Pressable>
+          <View style={styles.topBarActions}>
+            <ThemeToggle variant="onMedia" style={styles.themeToggle} />
+            <Pressable
+              onPress={() => showNotice('Transmissão para TV em breve.')}
+              style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}>
+              <MaterialIcons name="cast" size={22} color={Brand.white} />
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
 
       <View style={styles.videoBox}>
         {fullscreen && controlsVisible && (
-          <View style={styles.fullscreenExitBar}>
+          <View
+            style={[
+              styles.fullscreenExitBar,
+              { top: insets.top + 12, right: insets.right + 20 },
+            ]}
+          >
             <Pressable
               onPress={handleExitFullscreen}
               style={({ pressed }) => [styles.exitButton, pressed && styles.pressed]}
@@ -363,7 +378,17 @@ function PlayerContent({ movie }: { movie: Movie }) {
         )}
 
         {/* Barra de progresso - tap para seek */}
-        <View style={[styles.progressArea, !controlsVisible && styles.controlsHidden]}>
+        <View
+          style={[
+            styles.progressArea,
+            {
+              left: insets.left + 16,
+              right: insets.right + 16,
+              bottom: insets.bottom + 10,
+            },
+            !controlsVisible && styles.controlsHidden,
+          ]}
+        >
           <View style={styles.timesRow}>
             <Text style={styles.timeText}>{formatClock(currentTime)}</Text>
             <Text style={styles.timeRest}>{formatRemaining(Math.max(0, displayDuration - currentTime))}</Text>
@@ -441,13 +466,6 @@ const styles = StyleSheet.create({
     backgroundColor: PlayerColors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  castLabel: {
-    flex: 1,
-    textAlign: 'center',
-    ...TypeScale.caption,
-    fontWeight: '700',
-    color: 'rgba(255, 255, 255, 0.75)',
   },
   fullscreenExitBar: {
     position: 'absolute' as const,
